@@ -1,0 +1,41 @@
+PostgreSQL 4장 SQL 문제 · 정답 검수본
+=================================
+데이터베이스: hd
+샘플 데이터: hd_sample_data.sql (직원 69명, departments 등 7개 테이블)
+
+문항 수
+- 실습: 43문항 (교안의 모든 핵심 문법을 손으로 직접 사용)
+- 복습: 12문항 (핵심 개념 판단·짧은 SQL/서술)
+- 과제: 12문항 (여러 문법을 결합한 응용)
+- 총 67문항
+
+파일 구성
+- hd_4장_실습문제_학생용.sql / hd_4장_실습문제_정답해설.sql
+- hd_4장_복습문제_학생용.sql / hd_4장_복습문제_정답해설.sql
+- hd_4장_과제문제_학생용.sql / hd_4장_과제문제_정답해설.sql
+
+권장 진행
+1. hd 데이터베이스에 샘플 데이터를 먼저 적재합니다.
+2. 수업 직후 소단원별 실습문제 SQL 파일을 열어 주어진 주석 아래에 답을 작성합니다.
+3. 주요 개념을 복습문제로 스스로 확인합니다.
+4. 과제문제를 풀고 교사용 정답과 비교합니다.
+5. 답안 파일의 SELECT는 조회 전용으로, 샘플 행을 수정/삭제하지 않습니다.
+
+검수·개선 사항
+- 기존 실습 12문항에 없던 GROUP BY·HAVING·DISTINCT·NULLIF·OFFSET 등의 직접 실행 문제 추가
+- PostgreSQL 4장 내 모든 핵심 개념을 실습으로 확인할 수 있도록 확대
+- 5장에서 배우는 CAST·ROUND를 4장 과제의 필수 풀이에서 제외
+- 샘플 스키마와 컬럼명(commission_pct 등) 일치 확인
+- 의도적으로 결과가 0건/NULL인 예제는 해설에서 차이 설명
+- 학습 범위 바깥의 JOIN, 서브쿼리, DATE_TRUNC 등의 선행 문법 사용하지 않음
+- 각 SQL을 hd_sample_data.sql의 동일한 데이터 행을 적재한 로컬 검증 환경에서 확인함
+  (PostgreSQL 전용 ILIKE / DATE·TIMESTAMP 리터럴은 검증 시 동등 구문으로 변환했으며
+   실제 PostgreSQL 서버에서의 일괄 실행까지 보증하는 것은 아님.)
+
+소단원 커버리지
+- 01. SQL 분류·조회 처리: DQL/DML/DDL/DCL/TCL; 작성 순서·논리적 처리 순서; SELECT/FROM/WHERE, 별칭, GROUP BY/COUNT/AVG, HAVING, ORDER BY·LIMIT
+- 02. SELECT·조건 검색: =, <>, >, <, >=, <=; AND/OR/NOT, 괄호 우선순위; WHERE에서 별칭, IN/NOT IN, BETWEEN 숫자/DATE/TIMESTAMP, LIKE %·_, ILIKE
+- 03. NULL: NULL과 0/빈 문자열, IS NULL, IS NOT NULL, = NULL/UNKNOWN, NULL 연산, COALESCE, NULLIF
+- 04. 중복 제거·정렬·페이징: DISTINCT 단일/복수 열, ASC/DESC, 다중 정렬, NULLS FIRST/LAST, LIMIT, OFFSET, SQL 가독성
+
+SQL 샘플 검증: 69개 SELECT 문 실행 성공, 개념형 13문항

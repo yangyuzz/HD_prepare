@@ -1,0 +1,110 @@
+-- =========================================================
+-- Chapter 08 확인 문제
+-- =========================================================
+
+-- Q1. products 테이블에서 전체 제품의 평균 단가보다 단가가 높은
+--     제품의 제품명과 단가를 서브쿼리로 조회하시오.
+--     단가 내림차순으로 정렬하고 동점이면 제품번호 오름차순으로 정렬하시오.
+-- 정답:
+SELECT product_name, unit_price
+FROM products
+WHERE unit_price > (SELECT AVG(unit_price) FROM products)
+ORDER BY unit_price DESC, product_id;
+
+
+
+-- Q2. 가장 비싼 제품을 조회하시오.
+-- 정답:
+SELECT product_name, unit_price
+FROM products
+WHERE unit_price = (SELECT MAX(unit_price) FROM products);
+
+
+
+-- Q3. 주문 이력이 있는 고객을 IN으로 조회하시오.
+-- 정답:
+SELECT customer_id, company_name
+FROM customers
+WHERE customer_id IN (SELECT customer_id FROM orders)
+ORDER BY customer_id;
+
+
+
+-- Q4. 주문 이력이 없는 고객을 NOT EXISTS로 조회하시오.
+-- 정답:
+SELECT c.customer_id, c.company_name
+FROM customers c
+WHERE NOT EXISTS (
+    SELECT 1 FROM orders o WHERE o.customer_id = c.customer_id
+)
+ORDER BY c.customer_id;
+
+
+
+
+
+-- Q6. 같은 카테고리 평균보다 비싼 제품을 조회하시오. (상관 서브쿼리)
+-- 정답:
+SELECT p.product_name, p.category_id, p.unit_price
+FROM products p
+WHERE p.unit_price > (
+    SELECT AVG(p2.unit_price)
+    FROM products p2
+    WHERE p2.category_id = p.category_id
+)
+ORDER BY p.category_id, p.unit_price DESC, p.product_name;
+
+
+
+-- Q7. products 테이블에서 카테고리별 평균 단가를 소수 둘째 자리까지
+--     반올림하고, 그 결과를 파생 테이블로 사용하시오.
+--     반올림한 평균 단가가 30 이상인 카테고리 번호와 평균 단가를
+--     조회하고 평균 단가 내림차순으로 정렬하시오.
+-- 정답:
+SELECT *
+FROM (
+    SELECT
+        category_id,                                       -- 카테고리 번호
+        ROUND(AVG(unit_price)::NUMERIC, 2) AS avg_price    -- 평균 단가
+    FROM products
+    GROUP BY category_id
+) AS t
+WHERE avg_price >= 30
+ORDER BY avg_price DESC;
+
+
+
+-- Q8. customers 테이블에서 고객 회사명과 각 고객의 주문 건수를
+--     SELECT 절의 상관 스칼라 서브쿼리로 조회하시오.
+--     주문 건수 내림차순, 고객 코드 오름차순으로 정렬하고
+--     상위 10명만 조회하시오.
+-- 정답:
+SELECT
+    c.company_name,   -- 회사명
+    (SELECT COUNT(*) FROM orders o WHERE o.customer_id = c.customer_id) AS order_count   -- 주문 건수
+FROM customers c
+ORDER BY order_count DESC, c.customer_id
+LIMIT 10;
+
+
+
+-- Q9. 한 번도 판매되지 않은 제품을 조회하시오.
+-- 정답:
+SELECT p.product_id, p.product_name
+FROM products p
+WHERE NOT EXISTS (
+    SELECT 1 FROM order_details od WHERE od.product_id = p.product_id
+);
+
+
+
+-- Q10. mfg.tb_ai4i 테이블에서 전체 관측값의 평균 공구 마모 시간보다
+--      공구 마모 시간이 큰 관측값을 서브쿼리로 조회하시오.
+--      udi, product_type, tool_wear_min을 출력하고,
+--      공구 마모 시간 내림차순, udi 오름차순으로 정렬하여 10건만 조회하시오.
+-- 정답:
+SELECT udi, product_type, tool_wear_min
+FROM mfg.tb_ai4i
+WHERE tool_wear_min > (SELECT AVG(tool_wear_min) FROM mfg.tb_ai4i)
+ORDER BY tool_wear_min DESC, udi
+LIMIT 10;

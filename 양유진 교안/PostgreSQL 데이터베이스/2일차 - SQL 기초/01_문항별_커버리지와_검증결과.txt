@@ -1,0 +1,160 @@
+# 4장 문제 커버리지 · 검수 기록
+
+총 43 실습 / 12 복습 / 12 과제 = 67문항
+
+[실습]
+01  소단원 1  SQL 명령어 분류  [SQL 분류]
+02  소단원 1  작성 순서와 논리적 처리 순서  [작성·처리 순서]
+03  소단원 1  SELECT *로 구조 탐색 후 필요한 열만 선택  [SELECT · FROM · * · LIMIT]
+04  소단원 1  SELECT 별칭 AS  [SELECT · AS]
+05  소단원 1  FROM → WHERE → SELECT: 행과 열 고르기  [FROM · WHERE · SELECT]
+06  소단원 1  GROUP BY와 COUNT(*)  [GROUP BY · COUNT(*)]
+07  소단원 1  WHERE를 먼저 적용하는 그룹 집계  [WHERE · GROUP BY · COUNT]
+08  소단원 1  HAVING으로 그룹 필터링  [GROUP BY · HAVING]
+09  소단원 1  부서별 평균 급여 AVG  [GROUP BY · AVG · ORDER BY]
+10  소단원 1  ORDER BY + LIMIT의 처리 과정  [ORDER BY · LIMIT]
+11  소단원 1  전체 SQL 논리적 흐름  [논리적 처리 순서 · 종합]
+12  소단원 2  비교 연산자 = 와 <>  [= · <> · WHERE]
+13  소단원 2  비교 연산자 > 와 <  [> · <]
+14  소단원 2  비교 연산자 >= 와 <=  [>= · <=]
+15  소단원 2  AND 조건  [AND]
+16  소단원 2  OR 조건  [OR]
+17  소단원 2  NOT 조건  [NOT]
+18  소단원 2  AND/OR 우선순위와 괄호 비교  [AND · OR · 우선순위]
+19  소단원 2  WHERE에서 SELECT 별칭 사용 불가  [WHERE · 별칭]
+20  소단원 2  IN으로 여러 부서 선택  [IN]
+21  소단원 2  NOT IN과 목록 속 NULL  [NOT IN · NULL]
+22  소단원 2  BETWEEN 숫자 범위  [BETWEEN · 비교 경계]
+23  소단원 2  BETWEEN DATE 범위  [BETWEEN · DATE]
+24  소단원 2  TIMESTAMP 종료일 포함의 함정  [DATE · TIMESTAMP · BETWEEN]
+25  소단원 2  LIKE %: 접두·접미·포함 검색  [LIKE · %]
+26  소단원 2  LIKE _: 정확히 한 문자  [LIKE · _]
+27  소단원 2  ILIKE: 대소문자 무시  [LIKE · ILIKE]
+28  소단원 3  NULL·0·빈 문자열의 차이  [NULL · 0 · 빈 문자열]
+29  소단원 3  IS NULL로 연락처 미등록자 조회  [IS NULL]
+30  소단원 3  IS NOT NULL로 연락처 등록자 조회  [IS NOT NULL]
+31  소단원 3  = NULL의 UNKNOWN 확인  [NULL · 3값 논리]
+32  소단원 3  COALESCE로 미등록 연락처 표시  [COALESCE]
+33  소단원 3  NULLIF: 값이 같으면 NULL  [NULLIF]
+34  소단원 3  NULL이 포함된 계산과 비교 결과  [NULL · 연산]
+35  소단원 4  DISTINCT: 한 열 중복 제거  [DISTINCT]
+36  소단원 4  DISTINCT: 두 열의 조합  [DISTINCT · 복수 열]
+37  소단원 4  ORDER BY ASC·DESC  [ORDER BY · ASC · DESC]
+38  소단원 4  여러 열로 정렬하기  [ORDER BY 다중 정렬]
+39  소단원 4  NULLS FIRST와 NULLS LAST  [NULLS FIRST · NULLS LAST]
+40  소단원 4  LIMIT으로 상위 N명 조회  [LIMIT]
+41  소단원 4  OFFSET: 1·2·3페이지 조회  [LIMIT · OFFSET]
+42  소단원 4  정렬·중복·페이징 종합  [DISTINCT · WHERE · ORDER BY · LIMIT]
+43  소단원 4  SQL 가독성: 여러 절의 줄바꿈  [SQL 가독성 · 종합]
+
+[복습]
+01  소단원 1  SQL의 분류와 조회 목적  [SQL 분류]
+02  소단원 1  SQL 작성과 처리 순서  [SQL 논리적 처리]
+03  소단원 1  WHERE와 HAVING  [WHERE · HAVING]
+04  소단원 2  SELECT 별칭과 SELECT *  [별칭 · SELECT *]
+05  소단원 2  AND/OR 우선순위  [AND · OR]
+06  소단원 2  IN·NOT IN과 NULL  [IN · NOT IN]
+07  소단원 2  BETWEEN: 숫자와 날짜 경계  [BETWEEN · 시간 경계]
+08  소단원 2  LIKE·ILIKE의 비교  [LIKE · ILIKE]
+09  소단원 3  NULL의 비교·대체  [NULL · COALESCE · NULLIF]
+10  소단원 4  DISTINCT와 ORDER BY  [DISTINCT · ORDER BY]
+11  소단원 4  NULLS FIRST/LAST 선택  [NULLS FIRST · NULLS LAST]
+12  소단원 4  LIMIT·OFFSET 페이징  [LIMIT · OFFSET]
+
+[과제]
+01  소단원 1  조건별 직원 조회 보고서  [SELECT · WHERE · AS · ORDER BY · LIMIT]
+02  소단원 1  재직 직원 부서별 집계  [GROUP BY · HAVING]
+03  소단원 2  논리 연산자와 괄호  [AND · OR · 괄호]
+04  소단원 2  IN + BETWEEN 동시 사용  [IN · BETWEEN]
+05  소단원 2  문자 패턴 복합 검색  [LIKE · ILIKE · OR]
+06  소단원 2  2024년 입사자 검색  [BETWEEN · DATE]
+07  소단원 3  NULL인 연락처를 표시용 값으로 변환  [IS NULL · COALESCE]
+08  소단원 3  NOT IN과 NULL을 함께 처리  [NOT IN · IS NULL]
+09  소단원 4  DISTINCT 조합 추출  [DISTINCT · WHERE · ORDER BY]
+10  소단원 4  수수료율 정렬과 상위 N건  [ORDER BY · NULLS LAST · LIMIT]
+11  소단원 4  페이지 처리: 3페이지 조회  [LIMIT · OFFSET]
+12  소단원 4  종합: 부서별 평균 급여 상위 3개  [GROUP BY · HAVING · AVG · LIMIT]
+
+검증 결과:
+실습 01 · SQL 명령어 분류 · 개념 주석 · 반환 행 None
+실습 02 · 작성 순서와 논리적 처리 순서 · 개념 주석 · 반환 행 None
+실습 03 · SELECT *로 구조 탐색 후 필요한 열만 선택 · SELECT 1 · 반환 행 3
+실습 03 · SELECT *로 구조 탐색 후 필요한 열만 선택 · SELECT 2 · 반환 행 3
+실습 04 · SELECT 별칭 AS · SELECT 1 · 반환 행 5
+실습 05 · FROM → WHERE → SELECT: 행과 열 고르기 · SELECT 1 · 반환 행 1
+실습 06 · GROUP BY와 COUNT(*) · SELECT 1 · 반환 행 8
+실습 07 · WHERE를 먼저 적용하는 그룹 집계 · SELECT 1 · 반환 행 8
+실습 08 · HAVING으로 그룹 필터링 · SELECT 1 · 반환 행 8
+실습 09 · 부서별 평균 급여 AVG · SELECT 1 · 반환 행 8
+실습 10 · ORDER BY + LIMIT의 처리 과정 · SELECT 1 · 반환 행 2
+실습 11 · 전체 SQL 논리적 흐름 · SELECT 1 · 반환 행 3
+실습 12 · 비교 연산자 = 와 <> · SELECT 1 · 반환 행 10
+실습 12 · 비교 연산자 = 와 <> · SELECT 2 · 반환 행 10
+실습 13 · 비교 연산자 > 와 < · SELECT 1 · 반환 행 9
+실습 13 · 비교 연산자 > 와 < · SELECT 2 · 반환 행 5
+실습 14 · 비교 연산자 >= 와 <= · SELECT 1 · 반환 행 32
+실습 14 · 비교 연산자 >= 와 <= · SELECT 2 · 반환 행 5
+실습 15 · AND 조건 · SELECT 1 · 반환 행 17
+실습 16 · OR 조건 · SELECT 1 · 반환 행 27
+실습 17 · NOT 조건 · SELECT 1 · 반환 행 10
+실습 18 · AND/OR 우선순위와 괄호 비교 · SELECT 1 · 반환 행 1
+실습 18 · AND/OR 우선순위와 괄호 비교 · SELECT 2 · 반환 행 1
+실습 19 · WHERE에서 SELECT 별칭 사용 불가 · SELECT 1 · 반환 행 28
+실습 20 · IN으로 여러 부서 선택 · SELECT 1 · 반환 행 36
+실습 21 · NOT IN과 목록 속 NULL · SELECT 1 · 반환 행 42
+실습 22 · BETWEEN 숫자 범위 · SELECT 1 · 반환 행 38
+실습 23 · BETWEEN DATE 범위 · SELECT 1 · 반환 행 13
+실습 24 · TIMESTAMP 종료일 포함의 함정 · SELECT 1 · 반환 행 1
+실습 24 · TIMESTAMP 종료일 포함의 함정 · SELECT 2 · 반환 행 1
+실습 25 · LIKE %: 접두·접미·포함 검색 · SELECT 1 · 반환 행 7
+실습 25 · LIKE %: 접두·접미·포함 검색 · SELECT 2 · 반환 행 3
+실습 25 · LIKE %: 접두·접미·포함 검색 · SELECT 3 · 반환 행 10
+실습 26 · LIKE _: 정확히 한 문자 · SELECT 1 · 반환 행 7
+실습 26 · LIKE _: 정확히 한 문자 · SELECT 2 · 반환 행 3
+실습 27 · ILIKE: 대소문자 무시 · SELECT 1 · 반환 행 10
+실습 28 · NULL·0·빈 문자열의 차이 · SELECT 1 · 반환 행 1
+실습 29 · IS NULL로 연락처 미등록자 조회 · SELECT 1 · 반환 행 7
+실습 30 · IS NOT NULL로 연락처 등록자 조회 · SELECT 1 · 반환 행 1
+실습 31 · = NULL의 UNKNOWN 확인 · SELECT 1 · 반환 행 1
+실습 31 · = NULL의 UNKNOWN 확인 · SELECT 2 · 반환 행 1
+실습 32 · COALESCE로 미등록 연락처 표시 · SELECT 1 · 반환 행 10
+실습 33 · NULLIF: 값이 같으면 NULL · SELECT 1 · 반환 행 1
+실습 33 · NULLIF: 값이 같으면 NULL · SELECT 2 · 반환 행 1
+실습 34 · NULL이 포함된 계산과 비교 결과 · SELECT 1 · 반환 행 1
+실습 35 · DISTINCT: 한 열 중복 제거 · SELECT 1 · 반환 행 8
+실습 36 · DISTINCT: 두 열의 조합 · SELECT 1 · 반환 행 25
+실습 37 · ORDER BY ASC·DESC · SELECT 1 · 반환 행 5
+실습 37 · ORDER BY ASC·DESC · SELECT 2 · 반환 행 5
+실습 38 · 여러 열로 정렬하기 · SELECT 1 · 반환 행 67
+실습 39 · NULLS FIRST와 NULLS LAST · SELECT 1 · 반환 행 10
+실습 39 · NULLS FIRST와 NULLS LAST · SELECT 2 · 반환 행 10
+실습 40 · LIMIT으로 상위 N명 조회 · SELECT 1 · 반환 행 10
+실습 41 · OFFSET: 1·2·3페이지 조회 · SELECT 1 · 반환 행 10
+실습 41 · OFFSET: 1·2·3페이지 조회 · SELECT 2 · 반환 행 10
+실습 41 · OFFSET: 1·2·3페이지 조회 · SELECT 3 · 반환 행 10
+실습 42 · 정렬·중복·페이징 종합 · SELECT 1 · 반환 행 5
+실습 43 · SQL 가독성: 여러 절의 줄바꿈 · SELECT 1 · 반환 행 5
+복습 01 · SQL의 분류와 조회 목적 · 개념 주석 · 반환 행 None
+복습 02 · SQL 작성과 처리 순서 · 개념 주석 · 반환 행 None
+복습 03 · WHERE와 HAVING · 개념 주석 · 반환 행 None
+복습 04 · SELECT 별칭과 SELECT * · 개념 주석 · 반환 행 None
+복습 05 · AND/OR 우선순위 · 개념 주석 · 반환 행 None
+복습 06 · IN·NOT IN과 NULL · 개념 주석 · 반환 행 None
+복습 07 · BETWEEN: 숫자와 날짜 경계 · 개념 주석 · 반환 행 None
+복습 08 · LIKE·ILIKE의 비교 · 개념 주석 · 반환 행 None
+복습 09 · NULL의 비교·대체 · 개념 주석 · 반환 행 None
+복습 10 · DISTINCT와 ORDER BY · 개념 주석 · 반환 행 None
+복습 11 · NULLS FIRST/LAST 선택 · 개념 주석 · 반환 행 None
+복습 12 · LIMIT·OFFSET 페이징 · SELECT 1 · 반환 행 10
+과제 01 · 조건별 직원 조회 보고서 · SELECT 1 · 반환 행 10
+과제 02 · 재직 직원 부서별 집계 · SELECT 1 · 반환 행 8
+과제 03 · 논리 연산자와 괄호 · SELECT 1 · 반환 행 25
+과제 04 · IN + BETWEEN 동시 사용 · SELECT 1 · 반환 행 24
+과제 05 · 문자 패턴 복합 검색 · SELECT 1 · 반환 행 17
+과제 06 · 2024년 입사자 검색 · SELECT 1 · 반환 행 13
+과제 07 · NULL인 연락처를 표시용 값으로 변환 · SELECT 1 · 반환 행 7
+과제 08 · NOT IN과 NULL을 함께 처리 · SELECT 1 · 반환 행 42
+과제 09 · DISTINCT 조합 추출 · SELECT 1 · 반환 행 25
+과제 10 · 수수료율 정렬과 상위 N건 · SELECT 1 · 반환 행 10
+과제 11 · 페이지 처리: 3페이지 조회 · SELECT 1 · 반환 행 10
+과제 12 · 종합: 부서별 평균 급여 상위 3개 · SELECT 1 · 반환 행 3

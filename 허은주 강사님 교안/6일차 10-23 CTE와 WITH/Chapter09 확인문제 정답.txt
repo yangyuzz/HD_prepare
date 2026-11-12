@@ -1,0 +1,111 @@
+-- =========================================================
+-- Chapter 09 확인 문제
+-- =========================================================
+
+-- Q1. 주문 건수가 가장 많은 고객 10명과 주문 건수를 조회하시오.
+--     정렬: 주문 건수가 많은 순, 같으면 customer_id 순
+--     방법 참고: 고객별 주문 건수를 CTE로 만든다
+-- 정답:
+WITH customer_orders AS (         -- 고객별 주문 건수
+    SELECT customer_id, COUNT(*) AS order_count   -- 주문 건수
+    FROM orders
+    GROUP BY customer_id
+)
+SELECT * FROM customer_orders ORDER BY order_count DESC, customer_id LIMIT 10;
+
+
+
+-- Q2. orders 테이블에서 주문 이력이 있는 고객별 주문 건수를
+--     CTE로 계산하시오. 해당 고객들의 평균 주문 건수보다
+--     많이 주문한 고객의 customer_id와 order_count를 조회하시오.
+--     정렬: 주문 건수 내림차순, 같으면 customer_id 오름차순
+--     방법 참고: 고객별 주문 건수 CTE를 FROM과 WHERE의 서브쿼리에서 두 번 참조한다
+-- 정답:
+WITH customer_orders AS (         -- 고객별 주문 건수
+    SELECT customer_id, COUNT(*) AS order_count   -- 주문 건수
+    FROM orders
+    GROUP BY customer_id
+)
+SELECT *
+FROM customer_orders
+WHERE order_count > (SELECT AVG(order_count) FROM customer_orders)
+ORDER BY order_count DESC, customer_id;
+
+
+
+-- Q3. mfg.tb_ai4i에서 제품 품질 유형별 관측 건수, 고장 관측 건수, 고장 관측 비율(%)을 조회하시오.
+--     비율은 소수점 둘째 자리, 정렬: 비율이 높은 순
+--     방법 참고: 유형별 건수를 CTE로 구한 뒤 바깥 SELECT에서 비율을 계산한다
+-- 정답:
+WITH type_stats AS (                         -- 제품 품질 유형별 통계
+    SELECT
+        product_type,
+        COUNT(*)             AS total_count,  -- 관측 건수
+        SUM(machine_failure) AS failure_count -- 고장 관측 건수
+    FROM mfg.tb_ai4i
+    GROUP BY product_type
+)
+SELECT
+    product_type,
+    total_count,
+    failure_count,
+    ROUND(failure_count::NUMERIC / NULLIF(total_count, 0) * 100, 2) AS failure_pct   -- 고장 관측 비율(%)
+FROM type_stats
+ORDER BY failure_pct DESC, product_type;
+
+
+
+
+
+
+
+-- Q5. mfg.tb_ai4i 테이블에서 tool_wear_min을 다음 구간으로 분류하시오.
+--     100 미만           → '1_저마모'
+--     100 이상 200 미만  → '2_중마모'
+--     200 이상           → '3_고마모'
+--     CTE를 사용하여 구간별 관측 건수(row_count),
+--     고장 관측 건수(failure_count), 고장 관측 비율(failure_pct)을 조회하시오.
+--     비율은 소수 둘째 자리까지 반올림하고 마모 구간 순으로 정렬하시오.
+--     방법 참고: CASE로 구간을 붙이는 CTE를 만든 뒤 구간으로 GROUP BY
+-- 정답:
+WITH wear_band AS (                          -- 마모 구간 분류
+    SELECT
+        CASE
+            WHEN tool_wear_min < 100 THEN '1_저마모'
+            WHEN tool_wear_min < 200 THEN '2_중마모'
+            ELSE                          '3_고마모'
+        END AS band,                         -- 마모 구간
+        machine_failure
+    FROM mfg.tb_ai4i
+)
+SELECT
+    band,
+    COUNT(*)             AS row_count,       -- 건수
+    SUM(machine_failure) AS failure_count,   -- 고장 관측 건수
+    ROUND(SUM(machine_failure)::NUMERIC / COUNT(*) * 100, 2) AS failure_pct   -- 고장 관측 비율(%)
+FROM wear_band
+GROUP BY band
+ORDER BY band;
+
+
+
+
+
+-- Q7. 아래 FROM 절 서브쿼리를 CTE로 바꾸시오.
+--     order_details에서 총 판매 수량이 500보다 큰 제품의
+--     제품번호(product_id)와 총 판매 수량(total_qty)을 조회하시오.
+--     원본 서브쿼리와 같은 대상 행을 조회하되,
+--     총 판매 수량 내림차순, 같으면 product_id 오름차순으로 정렬하시오.
+-- 원본:
+-- SELECT * FROM (
+--     SELECT product_id, SUM(quantity) AS total_qty
+--     FROM order_details GROUP BY product_id
+-- ) t WHERE total_qty > 500;
+
+-- 정답:
+WITH product_qty AS (                        -- 제품별 판매 수량
+    SELECT product_id, SUM(quantity) AS total_qty   -- 총 판매 수량
+    FROM order_details
+    GROUP BY product_id
+)
+SELECT * FROM product_qty WHERE total_qty > 500 ORDER BY total_qty DESC, product_id;
