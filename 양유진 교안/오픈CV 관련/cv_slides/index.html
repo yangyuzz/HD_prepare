@@ -1,0 +1,450 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>컴퓨터 비전 &amp; 영상 분석</title>
+<style>
+/* ===== 테마 변수 (theme.js / theme.json 으로 덮어쓸 수 있다) ===== */
+:root {
+  --bg: #0f172a;            /* 슬라이드 바깥 배경 */
+  --paper: #ffffff;         /* 슬라이드 배경 */
+  --ink: #1e293b;           /* 본문 글자 */
+  --muted: #64748b;         /* 보조 글자(이미지 설명 등) */
+  --accent: #2563eb;        /* 링크 */
+  --accent-soft: #dbeafe;   /* 제목 밑줄, 표 머리글 배경 */
+  --heading: #1e3a8a;       /* 제목, 강조 글자 */
+  --grad-a: #1e3a8a;        /* 섹션/표지 그라디언트 시작 */
+  --grad-b: #2563eb;        /* 섹션/표지 그라디언트 끝 */
+  --on-grad: #ffffff;       /* 섹션/표지 글자 */
+  --code-bg: #0f172a;       /* 코드 블록 배경 */
+  --code-ink: #e2e8f0;      /* 코드 블록 글자 */
+  --inline-code-bg: #f1f5f9;/* 인라인 코드 배경 */
+  --line: #e2e8f0;          /* 표/이미지 테두리 */
+  --colab: #f9ab00;         /* Colab 버튼 */
+  --colab-ink: #1e293b;     /* Colab 버튼 글자 */
+  --ui-bg: #111827;         /* 하단 바, 목차 배경 */
+  --ui-ink: #e5e7eb;        /* 하단 바, 목차 글자 */
+  --ui-accent: #f9ab00;     /* 진행 표시, 현재 항목 */
+
+  --bar-h: 56px;
+  --toc-w: 300px;
+  --toc-left: 300px;
+}
+body.toc-closed { --toc-left: 0px; }
+body.fs { --bar-h: 0px; --toc-left: 0px; }
+
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; background: var(--bg); overflow: hidden;
+  font-family: "Pretendard", "Noto Sans KR", "Malgun Gothic", "Apple SD Gothic Neo", system-ui, sans-serif; }
+button { font: inherit; color: inherit; cursor: pointer; }
+
+/* ===== 슬라이드 영역 ===== */
+#viewport { position: fixed; left: var(--toc-left); top: 0; right: 0; bottom: var(--bar-h); overflow: hidden; }
+#stage { position: absolute; left: 50%; top: 50%; width: 1280px; height: 720px; transform-origin: center center; }
+.slide { position: absolute; inset: 0; background: var(--paper); color: var(--ink);
+  padding: 56px 72px 64px; display: none; flex-direction: column; overflow: hidden; }
+.slide.active { display: flex; }
+/* 멀티캠퍼스 로고: 모든 슬라이드 우하단 여백(padding-bottom 64px) 안에 고정. 원본이 흰 배경 PNG라 흰 배지로 감싼다 */
+#stage-logo { position: absolute; right: 22px; bottom: 16px; z-index: 5; height: 32px; width: auto;
+  background: #fff; padding: 5px 10px; border-radius: 7px; box-shadow: 0 1px 4px rgba(0,0,0,.15); pointer-events: none; user-select: none; }
+.slide h2 { margin: 0 0 28px; font-size: 44px; line-height: 1.25; color: var(--heading);
+  border-bottom: 4px solid var(--accent-soft); padding-bottom: 14px; }
+.slide .body { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 14px; font-size: 25.2px; line-height: 1.5;
+  word-break: keep-all; overflow-wrap: break-word; }  /* 한글은 단어 중간에서 줄을 바꾸지 않는다 */
+.slide.has-media .body { flex-direction: row; gap: 36px; }
+.slide.has-media .text { flex: 1 1 52%; min-width: 0; display: flex; flex-direction: column; gap: 12px; }
+.slide.has-media .media { flex: 1 1 48%; min-width: 0; display: flex; flex-direction: column; gap: 12px;
+  align-items: center; justify-content: center; }
+
+ul, ol { margin: 0; padding-left: 1.2em; }
+li { margin: 6px 0; }
+li > ul, li > ol { font-size: 0.9em; opacity: .85; }
+p { margin: 0; }
+strong { color: var(--heading); }
+a { color: var(--accent); }
+a.colab { display: inline-block; align-self: flex-start; margin-top: 8px; padding: 12px 26px;
+  background: var(--colab); color: var(--colab-ink); font-weight: 700; border-radius: 10px; text-decoration: none; }
+/* 실습 노트북 준비 중(Drive 업로드 전): 점선 테두리, 클릭해도 이동하지 않는다 */
+a.colab.pending { background: transparent; border: 2px dashed var(--colab); color: var(--muted); cursor: default; pointer-events: none; }
+.index-page .pending { color: var(--muted); }
+code { font-family: "D2Coding", "Consolas", "Menlo", monospace; background: var(--inline-code-bg); padding: 1px 7px;
+  border-radius: 5px; font-size: 0.9em; }
+pre { margin: 0; background: var(--code-bg); color: var(--code-ink); padding: 18px 22px; border-radius: 10px;
+  font-size: 19.8px; line-height: 1.45; overflow: hidden; white-space: pre-wrap; word-break: break-all; }
+pre code { background: none; padding: 0; font-size: inherit; color: inherit; }
+.slide .text pre { font-size: 18px; }
+figure { margin: 0; text-align: center; max-width: 100%; width: 100%; flex: 1 1 0; min-height: 120px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; }
+figure img { flex: 1 1 0; min-height: 0; max-width: 100%; object-fit: contain; border-radius: 8px; border: 1px solid var(--line); }
+figure figcaption { flex: none; font-size: 16.2px; color: var(--muted); margin-top: 6px; }
+.slide .media pre { flex: none; }
+.slide.layout-image:not(.has-media) .body { align-items: center; }
+/* ===== 구성 요소: 카드, 단계, 숫자, 강조 상자, 비교 (html.md "구성 요소") ===== */
+li::marker { color: var(--accent); }
+.slide.layout-stack .body { gap: 18px; }
+.cards { display: grid; gap: 16px; grid-template-columns: repeat(3, 1fr); }
+.cards.cols-1 { grid-template-columns: 1fr; }
+.cards.cols-2 { grid-template-columns: repeat(2, 1fr); }
+.cards.cols-4 { grid-template-columns: repeat(4, 1fr); }
+.cards.cols-5 { grid-template-columns: repeat(5, 1fr); }
+.card { background: var(--inline-code-bg); border: 1px solid var(--line); border-top: 5px solid var(--accent);
+  border-radius: 12px; padding: 16px 20px 18px; min-width: 0; }
+.card-t { font-weight: 700; color: var(--heading); font-size: 1.02em; margin-bottom: 6px; display: flex; align-items: center; gap: 10px; }
+.card-n, .step-n { flex: none; display: inline-flex; align-items: center; justify-content: center; width: 34px; height: 34px;
+  border-radius: 50%; background: var(--accent); color: var(--on-grad); font-size: 18px; font-weight: 700; }
+.card-d, .step-d { font-size: 0.86em; line-height: 1.45; }
+.card ul, .step ul, .panel ul { font-size: 0.86em; padding-left: 1.1em; }
+.card li, .step li, .panel li { margin: 3px 0; }
+.steps { display: flex; gap: 34px; align-items: stretch; }
+.step { position: relative; flex: 1 1 0; min-width: 0; background: var(--paper); border: 2px solid var(--accent-soft);
+  border-radius: 12px; padding: 16px 16px 16px; display: flex; flex-direction: column; gap: 6px; }
+.step-t { font-weight: 700; color: var(--heading); }
+.step:not(:last-child)::after { content: ""; position: absolute; right: -27px; top: 50%; transform: translateY(-50%);
+  border: 11px solid transparent; border-left: 16px solid var(--accent); border-right: 0; }
+.steps.vertical { flex-direction: column; gap: 22px; }
+.steps.vertical .step { flex: none; flex-direction: row; flex-wrap: wrap; align-items: center; column-gap: 14px; padding: 12px 18px; }
+.steps.vertical .step-d { flex: 1 1 40%; }
+.steps.vertical .step:not(:last-child)::after { right: auto; left: 26px; top: auto; bottom: -22px; transform: none;
+  border: 9px solid transparent; border-top: 13px solid var(--accent); border-bottom: 0; }
+.stats { display: flex; gap: 16px; }
+.stat { flex: 1 1 0; min-width: 0; text-align: center; border-radius: 12px; padding: 16px 10px;
+  background: linear-gradient(135deg, var(--grad-a), var(--grad-b)); color: var(--on-grad); }
+.stat-v { font-size: 1.7em; font-weight: 800; line-height: 1.2; }
+.stat-l { font-size: 0.78em; opacity: .9; margin-top: 4px; }
+.callout { border-left: 8px solid var(--accent); background: var(--accent-soft); border-radius: 0 12px 12px 0;
+  padding: 14px 22px; color: var(--heading); font-weight: 600; }
+.callout.warn { border-left-color: var(--colab); background: var(--inline-code-bg); color: var(--ink); }
+.callout strong { color: inherit; }
+.compare { display: grid; gap: 18px; grid-template-columns: repeat(2, 1fr); }
+.compare.cols-3 { grid-template-columns: repeat(3, 1fr); }
+.panel { border: 1px solid var(--line); border-radius: 12px; overflow: hidden; background: var(--paper); min-width: 0; }
+.panel-t { background: var(--accent-soft); color: var(--heading); font-weight: 700; padding: 9px 18px; }
+.panel > :not(.panel-t) { margin: 12px 18px; }
+.panel:nth-child(2) .panel-t { background: var(--heading); color: var(--on-grad); }
+
+/* ===== 도식 (인라인 SVG, result/diagrams/*.svg). 색은 아래 클래스로만 지정한다 ===== */
+figure.diagram svg { flex: 1 1 0; min-height: 0; width: 100%; max-width: 100%; display: block; }
+.dg text { font-family: inherit; fill: var(--ink); font-size: 22px; }
+.dg .t-head { fill: var(--heading); font-weight: 700; }
+.dg .t-muted { fill: var(--muted); }
+.dg .t-acc { fill: var(--accent); font-weight: 700; }
+.dg .t-on { fill: var(--on-grad); font-weight: 700; }
+.dg .t-code { font-family: "D2Coding", "Consolas", "Menlo", monospace; }
+.dg .t-s { font-size: 17px; }
+.dg .t-l { font-size: 28px; }
+.dg .box { fill: var(--paper); stroke: var(--heading); stroke-width: 2; }
+.dg .box-soft { fill: var(--accent-soft); stroke: none; }
+.dg .box-gray { fill: var(--inline-code-bg); stroke: var(--line); stroke-width: 2; }
+.dg .box-acc { fill: var(--accent); stroke: none; }
+.dg .box-head { fill: var(--heading); stroke: none; }
+.dg .box-warn { fill: var(--colab); stroke: none; }
+.dg .box-dark { fill: var(--code-bg); stroke: none; }
+.dg .box-dash { fill: none; stroke: var(--muted); stroke-width: 2; stroke-dasharray: 8 6; }
+.dg .line { fill: none; stroke: var(--muted); stroke-width: 2.5; }
+.dg .line-acc { fill: none; stroke: var(--accent); stroke-width: 3; }
+.dg .line-warn { fill: none; stroke: var(--colab); stroke-width: 3; }
+.dg .line-grid { fill: none; stroke: var(--line); stroke-width: 1.5; }
+.dg .arrhead { fill: var(--muted); }
+.dg .arrhead-acc { fill: var(--accent); }
+.dg .op { opacity: .55; }
+
+table { border-collapse: collapse; font-size: 21.6px; width: 100%; }
+th, td { border: 1px solid var(--line); padding: 8px 14px; text-align: left; }
+th { background: var(--accent-soft); color: var(--heading); }
+
+.slide.layout-section, .slide.layout-title { background: linear-gradient(135deg, var(--grad-a), var(--grad-b));
+  color: var(--on-grad); justify-content: center; }
+.slide.layout-section h2, .slide.layout-title h2 { color: var(--on-grad); border: none; font-size: 64px; margin-bottom: 20px; }
+.slide.layout-title h2 { font-size: 72px; }
+.slide.layout-section .body, .slide.layout-title .body { flex: 0 0 auto; font-size: 28.8px; }
+.slide.layout-section .body, .slide.layout-title .body { color: var(--on-grad); opacity: .88; }
+.slide.layout-section strong, .slide.layout-title strong,
+.slide.layout-section a, .slide.layout-title a { color: var(--on-grad); }
+.slide.layout-section code, .slide.layout-title code { color: var(--ink); }
+.notes { display: none; }
+
+/* ===== 하단 네비게이션 바 ===== */
+#bar { position: fixed; left: 0; right: 0; bottom: 0; height: 56px; z-index: 30; display: flex; align-items: center; gap: 8px;
+  padding: 0 14px; background: var(--ui-bg); color: var(--ui-ink); font-size: 14px; transition: transform .25s; }
+body.fs #bar { background: color-mix(in srgb, var(--ui-bg) 88%, transparent); height: 56px; }
+body.fs.idle #bar { transform: translateY(100%); }
+body.fs.idle { cursor: none; }
+#bar button, #bar a.btn { background: transparent; border: 1px solid transparent; color: var(--ui-ink); width: 38px; height: 38px;
+  border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; font-size: 20px; text-decoration: none; }
+#bar button:hover, #bar a.btn:hover { background: rgba(255,255,255,.12); }
+#bar button.on { color: var(--ui-accent); }
+#bar button[disabled] { opacity: .3; cursor: default; }
+#btn-prev, #btn-next { font-size: 30px; line-height: 1; padding-bottom: 4px; }
+#bar #btn-notes { width: auto; padding: 0 12px; font-size: 14px; white-space: nowrap; }
+#pager { display: flex; align-items: center; gap: 4px; white-space: nowrap; font-variant-numeric: tabular-nums; }
+#page-input { width: 52px; text-align: center; background: rgba(255,255,255,.1); color: var(--ui-ink);
+  border: 1px solid rgba(255,255,255,.25); border-radius: 6px; padding: 5px 2px; font: inherit; -moz-appearance: textfield; }
+#page-input::-webkit-inner-spin-button { display: none; }
+#seek { position: relative; flex: 1; min-width: 80px; height: 22px; cursor: pointer; margin: 0 6px; touch-action: none; }
+#seek::before { content: ""; position: absolute; left: 0; right: 0; top: 9px; height: 4px; border-radius: 2px; background: rgba(255,255,255,.22); }
+#seek-fill { position: absolute; left: 0; top: 9px; height: 4px; border-radius: 2px; background: var(--ui-accent); width: 0; }
+#seek-thumb { position: absolute; top: 4px; width: 14px; height: 14px; margin-left: -7px; border-radius: 50%; background: var(--ui-accent);
+  box-shadow: 0 0 0 3px rgba(0,0,0,.25); left: 0; }
+.tick { position: absolute; top: 5px; width: 2px; height: 12px; margin-left: -1px; background: rgba(255,255,255,.6); border-radius: 1px; }
+#seek-tip { position: absolute; bottom: 28px; transform: translateX(-50%); background: #000; color: #fff; padding: 5px 10px; border-radius: 6px;
+  font-size: 13px; white-space: nowrap; max-width: 420px; overflow: hidden; text-overflow: ellipsis; display: none; pointer-events: none; }
+/* 일차 선택 버튼 (하단 바, 목차 상단) */
+#days { display: flex; gap: 2px; flex: none; background: rgba(255,255,255,.08); border-radius: 9px; padding: 3px; }
+#days a, #toc-days a { padding: 5px 11px; border-radius: 7px; color: var(--ui-ink); text-decoration: none; font-size: 13px; white-space: nowrap; font-weight: 600; }
+#days a:hover, #toc-days a:hover { background: rgba(255,255,255,.14); }
+#days a.cur, #toc-days a.cur { background: var(--ui-accent); color: var(--ui-bg); }
+#toc-days { display: flex; gap: 4px; margin-bottom: 8px; }
+#toc-days a { flex: 1; text-align: center; border: 1px solid rgba(255,255,255,.2); }
+#bar-title { flex: 0 1 260px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; opacity: .8; }
+
+/* ===== 좌측 목차 ===== */
+#toc { position: fixed; left: 0; top: 0; bottom: var(--bar-h); width: var(--toc-w); z-index: 20; background: var(--ui-bg); color: var(--ui-ink);
+  display: flex; flex-direction: column; border-right: 1px solid rgba(255,255,255,.1); transition: transform .2s; }
+body.toc-closed #toc, body.fs #toc { transform: translateX(-100%); }
+#toc-head { padding: 12px; border-bottom: 1px solid rgba(255,255,255,.1); }
+#toc-head h1 { margin: 0 0 8px; font-size: 15px; font-weight: 700; color: var(--ui-accent); }
+#toc-search { width: 100%; padding: 7px 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,.25); background: rgba(255,255,255,.08);
+  color: var(--ui-ink); font: inherit; font-size: 13px; }
+#toc-list { flex: 1; overflow-y: auto; padding: 6px 0 14px; font-size: 13.5px; }
+.toc-group .toc-ch { display: flex; align-items: center; gap: 4px; padding: 7px 10px 7px 6px; font-weight: 700; cursor: pointer; }
+.toc-group .toc-ch:hover, .toc-group li a:hover { background: rgba(255,255,255,.08); }
+.toc-caret { width: 20px; height: 20px; flex: none; background: none; border: 0; padding: 0; opacity: .7; transition: transform .15s; }
+.toc-group.open .toc-caret { transform: rotate(90deg); }
+.toc-group ul { list-style: none; margin: 0; padding: 0; display: none; }
+.toc-group.open ul { display: block; }
+.toc-group li { margin: 0; }
+.toc-group li a { display: flex; gap: 8px; padding: 5px 12px 5px 34px; cursor: pointer; line-height: 1.35; color: inherit; text-decoration: none; opacity: .85; }
+.toc-group li a .n { flex: none; width: 26px; text-align: right; opacity: .55; font-variant-numeric: tabular-nums; }
+.toc-ch.cur, .toc-group li a.cur { color: var(--ui-accent); background: rgba(255,255,255,.1); opacity: 1; }
+.toc-group li a.cur { font-weight: 700; }
+.toc-hide { display: none !important; }
+
+/* ===== 좌우 이동 버튼 (슬라이드 위에 마우스를 올리면 표시) ===== */
+.edge { position: absolute; top: 50%; transform: translateY(-50%); z-index: 10; width: 48px; height: 96px; border: 0; border-radius: 10px;
+  background: rgba(0,0,0,.35); color: #fff; font-size: 40px; opacity: 0; transition: opacity .2s; }
+#viewport:hover .edge { opacity: .75; }
+.edge:hover { opacity: 1 !important; background: rgba(0,0,0,.55); }
+.edge[disabled] { display: none; }
+#edge-prev { left: 8px; } #edge-next { right: 8px; }
+
+/* ===== 발표자 노트 / 도움말 ===== */
+#notes-panel { display: none; position: fixed; left: var(--toc-left); right: 0; bottom: var(--bar-h); max-height: 34vh; overflow: auto; z-index: 25;
+  background: rgba(15, 23, 42, 0.96); color: #e2e8f0; padding: 14px 24px; font-size: 18px; line-height: 1.55; }
+body.show-notes #notes-panel { display: block; }
+#help-box { display: none; position: fixed; inset: 0; z-index: 50; background: rgba(0,0,0,.6); align-items: center; justify-content: center; }
+#help-box.on { display: flex; }
+#help-box .card { background: var(--ui-bg); color: var(--ui-ink); padding: 24px 32px; border-radius: 14px; min-width: 340px; font-size: 15px; line-height: 1.9; }
+#help-box h3 { margin: 0 0 8px; color: var(--ui-accent); }
+kbd { background: rgba(255,255,255,.15); border-radius: 4px; padding: 1px 7px; font-family: inherit; font-size: 13px; }
+
+@media (max-width: 1180px) { #bar-title { display: none; } }
+@media (max-width: 760px) { #days { display: none; } }
+@media (max-width: 900px) {
+  :root { --toc-left: 0px; }
+  #bar-title { display: none; }
+  #toc { box-shadow: 4px 0 20px rgba(0,0,0,.5); }
+  body:not(.toc-closed) #toc { transform: none; }
+}
+
+@media print {
+  html, body { overflow: visible; background: #fff; height: auto; }
+  #viewport { position: static; }
+  #stage { position: static; transform: none !important; width: auto; height: auto; }
+  .slide { position: relative; display: flex !important; width: 1280px; height: 720px; page-break-after: always; }
+  #bar, #toc, #notes-panel, .edge, #help-box, #stage-logo { display: none !important; }
+}
+
+/* 검사 모드 (?shot=1, ?check=1): 슬라이드만 보이게 한다 */
+body.shot { --bar-h: 0px; --toc-left: 0px; }
+body.shot #bar, body.shot #toc, body.shot .edge, body.shot #notes-panel, body.shot #check-result { display: none !important; }
+
+</style>
+<style>
+/* 강의 목록(index) 페이지: slide.css 의 테마 변수를 그대로 사용한다 */
+html, body.index-page { overflow: auto; height: auto; background: var(--bg); color: var(--ink); }
+.index-page { font-size: 16px; line-height: 1.6; }
+.hero { background: linear-gradient(135deg, var(--grad-a), var(--grad-b)); color: var(--on-grad); padding: 56px 24px 52px; }
+.hero .inner { max-width: 1100px; margin: 0 auto; }
+.hero .eyebrow { margin: 0 0 8px; opacity: .8; font-size: 14px; letter-spacing: .04em; }
+.hero h1 { margin: 0 0 14px; font-size: clamp(28px, 4.6vw, 46px); line-height: 1.25; }
+.hero .sub { margin: 0 0 26px; max-width: 760px; opacity: .9; font-size: 17px; }
+.hero-links { display: flex; flex-wrap: wrap; gap: 12px; }
+.hero-links a { text-decoration: none; padding: 12px 22px; border-radius: 10px; font-weight: 700; }
+.btn-main { background: var(--colab); color: var(--colab-ink); }
+.btn-sub { border: 2px solid var(--on-grad); color: var(--on-grad); }
+main { max-width: 1100px; margin: 0 auto; padding: 28px 24px 56px; }
+.days { display: grid; grid-template-columns: repeat(auto-fit, minmax(310px, 1fr)); gap: 20px; align-items: start; }
+.day { background: var(--paper); color: var(--ink); border-radius: 14px; padding: 22px 22px 18px; box-shadow: 0 2px 12px rgba(0,0,0,.25); display: flex; flex-direction: column; gap: 10px; }
+.day-head .num { display: inline-block; background: var(--accent-soft); color: var(--heading); font-weight: 700; padding: 2px 12px; border-radius: 999px; font-size: 14px; }
+.day-head h2 { margin: 8px 0 4px; font-size: 22px; line-height: 1.3; color: var(--heading); }
+.day-head p { margin: 0; color: var(--muted); font-size: 14px; }
+.day .start { align-self: flex-start; background: var(--heading); color: var(--paper); text-decoration: none; padding: 9px 18px; border-radius: 8px; font-weight: 700; font-size: 15px; }
+.day .start:hover { filter: brightness(1.15); }
+.day h3 { margin: 6px 0 0; font-size: 13px; color: var(--muted); font-weight: 700; }
+.chapters { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; border-top: 1px solid var(--line); }
+.chapters li { border-bottom: 1px solid var(--line); }
+.chapters a { display: flex; justify-content: space-between; gap: 10px; padding: 7px 4px; color: var(--ink); text-decoration: none; font-size: 15px; }
+.chapters a:hover { background: var(--accent-soft); }
+.chapters small { color: var(--muted); font-variant-numeric: tabular-nums; flex: none; }
+.day details { border-top: 1px solid var(--line); padding-top: 8px; }
+.day summary { cursor: pointer; font-size: 14px; color: var(--heading); font-weight: 700; }
+.day details ul { margin: 8px 0 0; padding-left: 18px; font-size: 14px; }
+.day details a { color: var(--accent); }
+.tips { margin-top: 28px; background: var(--ui-bg); color: var(--ui-ink); border-radius: 14px; padding: 18px 24px; }
+.tips h2 { margin: 0 0 8px; font-size: 17px; color: var(--ui-accent); }
+.tips ul { margin: 0; padding-left: 20px; font-size: 14.5px; }
+.tips kbd { background: rgba(255,255,255,.15); border-radius: 4px; padding: 1px 7px; font-family: inherit; font-size: 13px; }
+@media (max-width: 600px) { .hero { padding: 36px 18px; } main { padding: 18px 14px 40px; } }
+
+</style>
+
+<script>
+/* 슬라이드 테마: CSS 변수를 덮어쓴다. 슬라이드와 색상 설정 페이지가 함께 사용한다.
+   슬라이드는 CSS 기본값 + 빌드에 구운 theme.json 만 쓴다. read/save 는 쓰지 않는다(호환용으로 남김) */
+(function (global) {
+  var KEY = 'slideTheme';
+
+  // key = JSON 키, css = CSS 변수명
+  var VARS = [
+    { group: '슬라이드', key: 'paper', css: '--paper', label: '슬라이드 배경' },
+    { group: '슬라이드', key: 'ink', css: '--ink', label: '본문 글자' },
+    { group: '슬라이드', key: 'heading', css: '--heading', label: '제목·강조 글자' },
+    { group: '슬라이드', key: 'accentSoft', css: '--accent-soft', label: '제목 밑줄·표 머리글' },
+    { group: '슬라이드', key: 'accent', css: '--accent', label: '링크' },
+    { group: '슬라이드', key: 'muted', css: '--muted', label: '이미지 설명 글자' },
+    { group: '슬라이드', key: 'line', css: '--line', label: '표·이미지 테두리' },
+    { group: '섹션/표지', key: 'gradA', css: '--grad-a', label: '그라디언트 시작' },
+    { group: '섹션/표지', key: 'gradB', css: '--grad-b', label: '그라디언트 끝' },
+    { group: '섹션/표지', key: 'onGrad', css: '--on-grad', label: '글자' },
+    { group: '코드·버튼', key: 'codeBg', css: '--code-bg', label: '코드 블록 배경' },
+    { group: '코드·버튼', key: 'codeInk', css: '--code-ink', label: '코드 블록 글자' },
+    { group: '코드·버튼', key: 'inlineCodeBg', css: '--inline-code-bg', label: '인라인 코드 배경' },
+    { group: '코드·버튼', key: 'colab', css: '--colab', label: 'Colab 버튼' },
+    { group: '코드·버튼', key: 'colabInk', css: '--colab-ink', label: 'Colab 버튼 글자' },
+    { group: '바깥·UI', key: 'bg', css: '--bg', label: '슬라이드 바깥 배경' },
+    { group: '바깥·UI', key: 'uiBg', css: '--ui-bg', label: '하단 바·목차 배경' },
+    { group: '바깥·UI', key: 'uiInk', css: '--ui-ink', label: '하단 바·목차 글자' },
+    { group: '바깥·UI', key: 'uiAccent', css: '--ui-accent', label: '진행 표시·현재 항목' }
+  ];
+
+  var PRESETS = {
+    '기본 (블루)': {},
+    '다크': { paper: '#111827', ink: '#e5e7eb', heading: '#93c5fd', accentSoft: '#1f2937', accent: '#60a5fa', muted: '#9ca3af', line: '#374151',
+      gradA: '#0b1220', gradB: '#1e40af', onGrad: '#f9fafb', codeBg: '#030712', codeInk: '#e5e7eb', inlineCodeBg: '#1f2937',
+      colab: '#f9ab00', colabInk: '#111827', bg: '#000000', uiBg: '#0b1220', uiInk: '#e5e7eb', uiAccent: '#fbbf24' },
+    '세피아': { paper: '#fbf5e9', ink: '#3b2f23', heading: '#7c3f12', accentSoft: '#f0dfc2', accent: '#b45309', muted: '#8a7560', line: '#e6d6b8',
+      gradA: '#7c3f12', gradB: '#c2762b', onGrad: '#fffaf0', codeBg: '#2b2118', codeInk: '#f3e8d3', inlineCodeBg: '#f0e4cc',
+      colab: '#f9ab00', colabInk: '#2b2118', bg: '#2b2118', uiBg: '#2b2118', uiInk: '#f3e8d3', uiAccent: '#f59e0b' },
+    '숲 (그린)': { paper: '#f7fbf8', ink: '#1b2e24', heading: '#14532d', accentSoft: '#d1fae5', accent: '#047857', muted: '#5b7266', line: '#d5e5da',
+      gradA: '#14532d', gradB: '#16a34a', onGrad: '#ffffff', codeBg: '#10261a', codeInk: '#dcfce7', inlineCodeBg: '#e6f4ea',
+      colab: '#f9ab00', colabInk: '#1b2e24', bg: '#0b1a12', uiBg: '#0f2418', uiInk: '#dcfce7', uiAccent: '#facc15' },
+    '하이 콘트라스트': { paper: '#ffffff', ink: '#000000', heading: '#000000', accentSoft: '#ffe600', accent: '#0000cc', muted: '#333333', line: '#000000',
+      gradA: '#000000', gradB: '#1a1a1a', onGrad: '#ffe600', codeBg: '#000000', codeInk: '#ffffff', inlineCodeBg: '#eeeeee',
+      colab: '#ffe600', colabInk: '#000000', bg: '#000000', uiBg: '#000000', uiInk: '#ffffff', uiAccent: '#ffe600' }
+  };
+
+  function b64encode(str) { return btoa(unescape(encodeURIComponent(str))); }
+  function b64decode(str) { return decodeURIComponent(escape(atob(str))); }
+
+  function fromQuery() {
+    try {
+      var m = /[?&]theme=([^&#]+)/.exec(location.search);
+      return m ? JSON.parse(b64decode(decodeURIComponent(m[1]))) : null;
+    } catch (e) { return null; }
+  }
+  function fromStorage() {
+    try { var s = localStorage.getItem(KEY); return s ? JSON.parse(s) : null; } catch (e) { return null; }
+  }
+  function save(theme) {
+    try {
+      if (theme && Object.keys(theme).length) localStorage.setItem(KEY, JSON.stringify(theme));
+      else localStorage.removeItem(KEY);
+      return true;
+    } catch (e) { return false; }
+  }
+  function read() { return fromQuery() || fromStorage() || null; }
+
+  function apply(theme, el) {
+    el = el || document.documentElement;
+    VARS.forEach(function (v) {
+      if (theme && theme[v.key]) el.style.setProperty(v.css, theme[v.key]);
+      else el.style.removeProperty(v.css);
+    });
+  }
+
+  // 현재 적용된 계산값(기본값 포함)을 {key: '#rrggbb'} 로 읽는다
+  function current(el) {
+    var cs = getComputedStyle(el || document.documentElement), out = {};
+    VARS.forEach(function (v) { out[v.key] = toHex(cs.getPropertyValue(v.css).trim()); });
+    return out;
+  }
+  function toHex(c) {
+    if (/^#[0-9a-f]{6}$/i.test(c)) return c.toLowerCase();
+    if (/^#[0-9a-f]{3}$/i.test(c)) return '#' + c.slice(1).split('').map(function (x) { return x + x; }).join('').toLowerCase();
+    var m = /rgba?\((\d+)[ ,]+(\d+)[ ,]+(\d+)/.exec(c);
+    if (m) return '#' + [1, 2, 3].map(function (i) { return ('0' + (+m[i]).toString(16)).slice(-2); }).join('');
+    return '#000000';
+  }
+
+  // 대비비 (WCAG)
+  function lum(hex) {
+    var n = parseInt(hex.slice(1), 16), r = [(n >> 16) & 255, (n >> 8) & 255, n & 255].map(function (v) {
+      v /= 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
+    });
+    return 0.2126 * r[0] + 0.7152 * r[1] + 0.0722 * r[2];
+  }
+  function contrast(a, b) {
+    var x = lum(a), y = lum(b);
+    return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05);
+  }
+
+  // 페이지 간 링크: result/ 의 파일(_로 시작)에서는 대상 파일명 앞에 _ 를 붙인다. (data-nav="slide_1.html#3" -> _slide_1.html#3)
+  document.addEventListener('DOMContentLoaded', function () {
+    if (!/(^|\/)_[^\/]*$/.test(location.pathname)) return;
+    Array.prototype.forEach.call(document.querySelectorAll('a[data-nav]'), function (a) {
+      a.setAttribute('href', '_' + a.getAttribute('data-nav'));
+    });
+  });
+
+  global.SlideTheme = { VARS: VARS, PRESETS: PRESETS, read: read, save: save, apply: apply, current: current,
+    contrast: contrast, encode: function (t) { return encodeURIComponent(b64encode(JSON.stringify(t))); } };
+
+  // 슬라이드는 빌드에 구운 theme.json 색만 쓴다. 보는 사람이 브라우저에서 색을 바꾸는 기능(localStorage, ?theme=)은 없앴다:
+  // 노트북 출력 이미지는 테마를 따라가지 못해서, 색은 제작자가 정해 빌드에 굽는다 (루트의 theme.html -> theme.json).
+})(window);
+
+</script>
+</head>
+<body class="index-page">
+<header class="hero">
+  <div class="inner">
+    <p class="eyebrow">강의 슬라이드 · 총 314장</p>
+    <h1>컴퓨터 비전 &amp; 영상 분석</h1>
+    <p class="sub">OpenCV, CNN, Transfer Learning, 세그멘테이션, Object Detection과 YOLO를 다룹니다. 실습 코드는 각 장의 Colab 링크로 연결됩니다.</p>
+    <div class="hero-links">
+      <a class="btn-main" href="slide_1.html#1" data-nav="slide_1.html#1">모듈 1 시작하기</a>
+    </div>
+  </div>
+</header>
+<main>
+  <section class="days">
+<article class="day"><div class="day-head"><span class="num">모듈 1</span><h2>컴퓨터 비전과 OpenCV</h2><p>슬라이드 47장 · 장 7개 · 실습 노트북 5개</p></div><a class="start" href="slide_1.html#1" data-nav="slide_1.html#1">처음부터 보기 →</a><h3>장 바로가기</h3><ol class="chapters"><li><a href="slide_1.html#1" data-nav="slide_1.html#1"><span>컴퓨터 비전 &amp; 영상 분석</span><small>1</small></a></li><li><a href="slide_1.html#6" data-nav="slide_1.html#6"><span>컴퓨터 비전 개론</span><small>6</small></a></li><li><a href="slide_1.html#15" data-nav="slide_1.html#15"><span>OpenCV 기초</span><small>15</small></a></li><li><a href="slide_1.html#26" data-nav="slide_1.html#26"><span>이진화 (Binarization)</span><small>26</small></a></li><li><a href="slide_1.html#31" data-nav="slide_1.html#31"><span>기하 변환 (Geometry)</span><small>31</small></a></li><li><a href="slide_1.html#37" data-nav="slide_1.html#37"><span>레이블링 (Labeling)과 QR 코드</span><small>37</small></a></li><li><a href="slide_1.html#42" data-nav="slide_1.html#42"><span>모폴로지 (Morphology)</span><small>42</small></a></li></ol><details><summary>실습 노트북 (Colab) 5개</summary><ul><li><a href="https://colab.research.google.com/drive/1U9mivhPaTB_lIGpkbX1RjoNaCEVCT1a8" target="_blank" rel="noopener">[실습] OpenCV 기초</a></li><li><a href="https://colab.research.google.com/drive/122zoNG0WsSFTuIniQNqth2jHbBr-bX3S" target="_blank" rel="noopener">[실습] 이진화</a></li><li><a href="https://colab.research.google.com/drive/1ncKE7UaCGuYQLGsPo8fYBlEOq2Hz1vlK" target="_blank" rel="noopener">[실습] 기하 변환</a></li><li><a href="https://colab.research.google.com/drive/1D8Bb7oYaXyPOjCRkkqai1yIuHbYOaO8n" target="_blank" rel="noopener">[실습] 레이블링과 QR 코드</a></li><li><a href="https://colab.research.google.com/drive/1NrCRXdudWKrNBJHJHcyadzogKTx7uCKQ" target="_blank" rel="noopener">[실습] 모폴로지</a></li></ul></details></article>
+<article class="day"><div class="day-head"><span class="num">모듈 2</span><h2>PyTorch와 CNN 분류·회귀</h2><p>슬라이드 58장 · 장 9개 · 실습 노트북 6개</p></div><a class="start" href="slide_2.html#1" data-nav="slide_2.html#1">처음부터 보기 →</a><h3>장 바로가기</h3><ol class="chapters"><li><a href="slide_2.html#1" data-nav="slide_2.html#1"><span>컴퓨터 비전 &amp; 영상 분석</span><small>1</small></a></li><li><a href="slide_2.html#2" data-nav="slide_2.html#2"><span>PyTorch로 컬러 필터 구현</span><small>2</small></a></li><li><a href="slide_2.html#12" data-nav="slide_2.html#12"><span>Convolution과 CNN</span><small>12</small></a></li><li><a href="slide_2.html#18" data-nav="slide_2.html#18"><span>CNN 실습: MNIST, ResNet34, Transfer Learning</span><small>18</small></a></li><li><a href="slide_2.html#28" data-nav="slide_2.html#28"><span>Transfer Learning으로 고성능 모델 만들기</span><small>28</small></a></li><li><a href="slide_2.html#33" data-nav="slide_2.html#33"><span>데이터 증강(Data Augmentation)</span><small>33</small></a></li><li><a href="slide_2.html#41" data-nav="slide_2.html#41"><span>분류 실습: weather 데이터셋</span><small>41</small></a></li><li><a href="slide_2.html#50" data-nav="slide_2.html#50"><span>분류 + 회귀 실습: book 데이터셋</span><small>50</small></a></li><li><a href="slide_2.html#57" data-nav="slide_2.html#57"><span>핵심 정리</span><small>57</small></a></li></ol><details><summary>실습 노트북 (Colab) 6개</summary><ul><li><a href="https://colab.research.google.com/drive/1w6fr39rVDzj9Kq8pQaw4WoTGO8l29XFc" target="_blank" rel="noopener">[실습] PyTorch 컬러 필터</a></li><li><a href="https://colab.research.google.com/drive/1gQsGtsPk2atyxgOdJdWKD2DY83v4LuFf" target="_blank" rel="noopener">[실습] Convolution과 CNN</a></li><li><a href="https://colab.research.google.com/drive/14F5Tl6mRgolM--XUZkuJUJe9h96Fseqt" target="_blank" rel="noopener">[실습] MNIST, ResNet34, Transfer Learning</a></li><li><a href="https://colab.research.google.com/drive/1QiY_rHE_YHiHY_aIz12vnArUALID6TO_" target="_blank" rel="noopener">실습: 책 데이터 증강 (Colab)</a></li><li><a href="https://colab.research.google.com/drive/1mfAULgY7RIZD4bjBvSHSlG5VxNp6TRep" target="_blank" rel="noopener">실습: weather 데이터셋 분류 (Colab)</a></li><li><a href="https://colab.research.google.com/drive/1BZuMbLgvDl48YYVOJEVUTgrYQgVNOp3-" target="_blank" rel="noopener">실습: book 분류 + 회귀 (Colab)</a></li></ul></details></article>
+<article class="day"><div class="day-head"><span class="num">모듈 3</span><h2>세그멘테이션</h2><p>슬라이드 23장 · 장 5개 · 실습 노트북 1개</p></div><a class="start" href="slide_3.html#1" data-nav="slide_3.html#1">처음부터 보기 →</a><h3>장 바로가기</h3><ol class="chapters"><li><a href="slide_3.html#1" data-nav="slide_3.html#1"><span>컴퓨터 비전 &amp; 영상 분석</span><small>1</small></a></li><li><a href="slide_3.html#2" data-nav="slide_3.html#2"><span>Semantic Segmentation 소개</span><small>2</small></a></li><li><a href="slide_3.html#10" data-nav="slide_3.html#10"><span>U-Net, U2Net과 MRI 세그멘테이션</span><small>10</small></a></li><li><a href="slide_3.html#18" data-nav="slide_3.html#18"><span>Transfer Learning을 적용한 세그멘테이션</span><small>18</small></a></li><li><a href="slide_3.html#22" data-nav="slide_3.html#22"><span>핵심 정리</span><small>22</small></a></li></ol><details><summary>실습 노트북 (Colab) 1개</summary><ul><li><a href="https://colab.research.google.com/drive/1MzbEqUSeAxMt4z0vUEBt81YQUkE-odP-" target="_blank" rel="noopener">실습: U-Net/U2Net MRI 세그멘테이션 (Colab)</a></li></ul></details></article>
+<article class="day"><div class="day-head"><span class="num">모듈 4</span><h2>Object Detection과 YOLO</h2><p>슬라이드 45장 · 장 9개 · 실습 노트북 4개</p></div><a class="start" href="slide_4.html#1" data-nav="slide_4.html#1">처음부터 보기 →</a><h3>장 바로가기</h3><ol class="chapters"><li><a href="slide_4.html#1" data-nav="slide_4.html#1"><span>컴퓨터 비전 &amp; 영상 분석</span><small>1</small></a></li><li><a href="slide_4.html#2" data-nav="slide_4.html#2"><span>Object Detection 소개</span><small>2</small></a></li><li><a href="slide_4.html#10" data-nav="slide_4.html#10"><span>YOLO 소개와 구조</span><small>10</small></a></li><li><a href="slide_4.html#16" data-nav="slide_4.html#16"><span>YOLO Detection 실습</span><small>16</small></a></li><li><a href="slide_4.html#25" data-nav="slide_4.html#25"><span>ChatGPT로 포트홀 탐지 모델 제작 맛보기</span><small>25</small></a></li><li><a href="slide_4.html#28" data-nav="slide_4.html#28"><span>YOLO Instance Segmentation</span><small>28</small></a></li><li><a href="slide_4.html#34" data-nav="slide_4.html#34"><span>YOLO KeyPoint</span><small>34</small></a></li><li><a href="slide_4.html#39" data-nav="slide_4.html#39"><span>YOLO OBB (Oriented Bounding Box)</span><small>39</small></a></li><li><a href="slide_4.html#43" data-nav="slide_4.html#43"><span>핵심 정리, 참고자료</span><small>43</small></a></li></ol><details><summary>실습 노트북 (Colab) 4개</summary><ul><li><a href="https://colab.research.google.com/drive/1dQAjCQcJ1lN6RjANvigmBbxfGVffy30h" target="_blank" rel="noopener">실습: YOLO Detection</a></li><li><a href="https://colab.research.google.com/drive/11e0x6xh4ddFQ1RoOTkZv1-fLBNetYcgg" target="_blank" rel="noopener">실습: YOLO Instance Segmentation</a></li><li><a href="https://colab.research.google.com/drive/127Vds3T0AzSMgfmsOcB88HKbJePK4qAp" target="_blank" rel="noopener">실습: YOLO KeyPoint</a></li><li><a href="https://colab.research.google.com/drive/11CoQ-QQIYKrJDqHvKgcbTGm16A2nsvch" target="_blank" rel="noopener">실습: YOLO OBB</a></li></ul></details></article>
+<article class="day"><div class="day-head"><span class="num">모듈 5</span><h2>영상(Video) 분석 기초</h2><p>슬라이드 35장 · 장 5개 · 실습 노트북 2개</p></div><a class="start" href="slide_5.html#1" data-nav="slide_5.html#1">처음부터 보기 →</a><h3>장 바로가기</h3><ol class="chapters"><li><a href="slide_5.html#1" data-nav="slide_5.html#1"><span>컴퓨터 비전 &amp; 영상 분석</span><small>1</small></a></li><li><a href="slide_5.html#2" data-nav="slide_5.html#2"><span>동영상의 구조</span><small>2</small></a></li><li><a href="slide_5.html#13" data-nav="slide_5.html#13"><span>움직임 검출</span><small>13</small></a></li><li><a href="slide_5.html#22" data-nav="slide_5.html#22"><span>Optical Flow</span><small>22</small></a></li><li><a href="slide_5.html#33" data-nav="slide_5.html#33"><span>핵심 정리</span><small>33</small></a></li></ol><details><summary>실습 노트북 (Colab) 2개</summary><ul><li><span class="pending">[실습] 동영상 읽고 쓰기 (준비 중)</span></li><li><span class="pending">[실습] 움직임 분석 (준비 중)</span></li></ul></details></article>
+<article class="day"><div class="day-head"><span class="num">모듈 6</span><h2>객체 추적과 영상 분석 응용</h2><p>슬라이드 35장 · 장 6개 · 실습 노트북 2개</p></div><a class="start" href="slide_6.html#1" data-nav="slide_6.html#1">처음부터 보기 →</a><h3>장 바로가기</h3><ol class="chapters"><li><a href="slide_6.html#1" data-nav="slide_6.html#1"><span>컴퓨터 비전 &amp; 영상 분석</span><small>1</small></a></li><li><a href="slide_6.html#2" data-nav="slide_6.html#2"><span>객체 추적이란</span><small>2</small></a></li><li><a href="slide_6.html#7" data-nav="slide_6.html#7"><span>추적 알고리즘</span><small>7</small></a></li><li><a href="slide_6.html#18" data-nav="slide_6.html#18"><span>Ultralytics로 추적하기</span><small>18</small></a></li><li><a href="slide_6.html#24" data-nav="slide_6.html#24"><span>영상 분석 응용</span><small>24</small></a></li><li><a href="slide_6.html#34" data-nav="slide_6.html#34"><span>핵심 정리</span><small>34</small></a></li></ol><details><summary>실습 노트북 (Colab) 2개</summary><ul><li><span class="pending">실습: 객체 추적 (준비 중)</span></li><li><span class="pending">실습: 라인 카운팅과 영역 분석 (준비 중)</span></li></ul></details></article>
+<article class="day"><div class="day-head"><span class="num">모듈 7</span><h2>특징점, 카메라와 측정</h2><p>슬라이드 39장 · 장 6개 · 실습 노트북 2개</p></div><a class="start" href="slide_7.html#1" data-nav="slide_7.html#1">처음부터 보기 →</a><h3>장 바로가기</h3><ol class="chapters"><li><a href="slide_7.html#1" data-nav="slide_7.html#1"><span>컴퓨터 비전 &amp; 영상 분석</span><small>1</small></a></li><li><a href="slide_7.html#2" data-nav="slide_7.html#2"><span>특징점 (Feature)</span><small>2</small></a></li><li><a href="slide_7.html#10" data-nav="slide_7.html#10"><span>매칭과 호모그래피 (Matching, Homography)</span><small>10</small></a></li><li><a href="slide_7.html#20" data-nav="slide_7.html#20"><span>카메라 모델과 캘리브레이션 (Camera Calibration)</span><small>20</small></a></li><li><a href="slide_7.html#29" data-nav="slide_7.html#29"><span>영상으로 치수 측정 (Measurement)</span><small>29</small></a></li><li><a href="slide_7.html#38" data-nav="slide_7.html#38"><span>핵심 정리</span><small>38</small></a></li></ol><details><summary>실습 노트북 (Colab) 2개</summary><ul><li><span class="pending">[실습] 특징점 매칭과 호모그래피 (준비 중)</span></li><li><span class="pending">[실습] 캘리브레이션과 치수 측정 (준비 중)</span></li></ul></details></article>
+<article class="day"><div class="day-head"><span class="num">모듈 8</span><h2>이상 탐지 기반 불량 검사</h2><p>슬라이드 32장 · 장 6개 · 실습 노트북 2개</p></div><a class="start" href="slide_8.html#1" data-nav="slide_8.html#1">처음부터 보기 →</a><h3>장 바로가기</h3><ol class="chapters"><li><a href="slide_8.html#1" data-nav="slide_8.html#1"><span>컴퓨터 비전 &amp; 영상 분석</span><small>1</small></a></li><li><a href="slide_8.html#2" data-nav="slide_8.html#2"><span>비전 불량 검사의 문제 정의</span><small>2</small></a></li><li><a href="slide_8.html#8" data-nav="slide_8.html#8"><span>규칙 기반 검사</span><small>8</small></a></li><li><a href="slide_8.html#14" data-nav="slide_8.html#14"><span>딥러닝 이상 탐지</span><small>14</small></a></li><li><a href="slide_8.html#24" data-nav="slide_8.html#24"><span>평가와 현장 적용</span><small>24</small></a></li><li><a href="slide_8.html#31" data-nav="slide_8.html#31"><span>핵심 정리</span><small>31</small></a></li></ol><details><summary>실습 노트북 (Colab) 2개</summary><ul><li><span class="pending">실습: 규칙 기반 불량 검사 (Colab) (준비 중)</span></li><li><span class="pending">실습: 딥러닝 이상 탐지 (Colab) (준비 중)</span></li></ul></details></article>
+  </section>
+  <section class="tips">
+    <h2>보는 방법</h2>
+    <ul>
+      <li><kbd>←</kbd> <kbd>→</kbd> <kbd>↑</kbd> <kbd>↓</kbd> 마우스 휠 이전/다음 &nbsp; <kbd>T</kbd> 목차 &nbsp; <kbd>/</kbd> 목차 검색 &nbsp; <kbd>N</kbd> 발표자 노트 &nbsp; <kbd>F</kbd> 전체화면 &nbsp; <kbd>G</kbd> 페이지 이동 &nbsp; <kbd>?</kbd> 단축키</li>
+      <li>슬라이드 아래 진행 바를 클릭하거나 드래그하면 동영상처럼 이동합니다. 하단 바의 <b>모듈 1 / 모듈 2 / 모듈 3 / 모듈 4 / 모듈 5 / 모듈 6 / 모듈 7 / 모듈 8</b> 버튼으로 덱을 바꾸고, <b>⌂</b> 버튼으로 이 목록에 돌아옵니다.</li>
+    </ul>
+  </section>
+</main>
+</body>
+</html>

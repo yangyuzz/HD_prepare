@@ -1,0 +1,1289 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>컴퓨터 비전 & 영상 분석 - 모듈 8</title>
+<style>
+/* ===== 테마 변수 (theme.js / theme.json 으로 덮어쓸 수 있다) ===== */
+:root {
+  --bg: #0f172a;            /* 슬라이드 바깥 배경 */
+  --paper: #ffffff;         /* 슬라이드 배경 */
+  --ink: #1e293b;           /* 본문 글자 */
+  --muted: #64748b;         /* 보조 글자(이미지 설명 등) */
+  --accent: #2563eb;        /* 링크 */
+  --accent-soft: #dbeafe;   /* 제목 밑줄, 표 머리글 배경 */
+  --heading: #1e3a8a;       /* 제목, 강조 글자 */
+  --grad-a: #1e3a8a;        /* 섹션/표지 그라디언트 시작 */
+  --grad-b: #2563eb;        /* 섹션/표지 그라디언트 끝 */
+  --on-grad: #ffffff;       /* 섹션/표지 글자 */
+  --code-bg: #0f172a;       /* 코드 블록 배경 */
+  --code-ink: #e2e8f0;      /* 코드 블록 글자 */
+  --inline-code-bg: #f1f5f9;/* 인라인 코드 배경 */
+  --line: #e2e8f0;          /* 표/이미지 테두리 */
+  --colab: #f9ab00;         /* Colab 버튼 */
+  --colab-ink: #1e293b;     /* Colab 버튼 글자 */
+  --ui-bg: #111827;         /* 하단 바, 목차 배경 */
+  --ui-ink: #e5e7eb;        /* 하단 바, 목차 글자 */
+  --ui-accent: #f9ab00;     /* 진행 표시, 현재 항목 */
+
+  --bar-h: 56px;
+  --toc-w: 300px;
+  --toc-left: 300px;
+}
+body.toc-closed { --toc-left: 0px; }
+body.fs { --bar-h: 0px; --toc-left: 0px; }
+
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; background: var(--bg); overflow: hidden;
+  font-family: "Pretendard", "Noto Sans KR", "Malgun Gothic", "Apple SD Gothic Neo", system-ui, sans-serif; }
+button { font: inherit; color: inherit; cursor: pointer; }
+
+/* ===== 슬라이드 영역 ===== */
+#viewport { position: fixed; left: var(--toc-left); top: 0; right: 0; bottom: var(--bar-h); overflow: hidden; }
+#stage { position: absolute; left: 50%; top: 50%; width: 1280px; height: 720px; transform-origin: center center; }
+.slide { position: absolute; inset: 0; background: var(--paper); color: var(--ink);
+  padding: 56px 72px 64px; display: none; flex-direction: column; overflow: hidden; }
+.slide.active { display: flex; }
+/* 멀티캠퍼스 로고: 모든 슬라이드 우하단 여백(padding-bottom 64px) 안에 고정. 원본이 흰 배경 PNG라 흰 배지로 감싼다 */
+#stage-logo { position: absolute; right: 22px; bottom: 16px; z-index: 5; height: 32px; width: auto;
+  background: #fff; padding: 5px 10px; border-radius: 7px; box-shadow: 0 1px 4px rgba(0,0,0,.15); pointer-events: none; user-select: none; }
+.slide h2 { margin: 0 0 28px; font-size: 44px; line-height: 1.25; color: var(--heading);
+  border-bottom: 4px solid var(--accent-soft); padding-bottom: 14px; }
+.slide .body { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 14px; font-size: 25.2px; line-height: 1.5;
+  word-break: keep-all; overflow-wrap: break-word; }  /* 한글은 단어 중간에서 줄을 바꾸지 않는다 */
+.slide.has-media .body { flex-direction: row; gap: 36px; }
+.slide.has-media .text { flex: 1 1 52%; min-width: 0; display: flex; flex-direction: column; gap: 12px; }
+.slide.has-media .media { flex: 1 1 48%; min-width: 0; display: flex; flex-direction: column; gap: 12px;
+  align-items: center; justify-content: center; }
+
+ul, ol { margin: 0; padding-left: 1.2em; }
+li { margin: 6px 0; }
+li > ul, li > ol { font-size: 0.9em; opacity: .85; }
+p { margin: 0; }
+strong { color: var(--heading); }
+a { color: var(--accent); }
+a.colab { display: inline-block; align-self: flex-start; margin-top: 8px; padding: 12px 26px;
+  background: var(--colab); color: var(--colab-ink); font-weight: 700; border-radius: 10px; text-decoration: none; }
+/* 실습 노트북 준비 중(Drive 업로드 전): 점선 테두리, 클릭해도 이동하지 않는다 */
+a.colab.pending { background: transparent; border: 2px dashed var(--colab); color: var(--muted); cursor: default; pointer-events: none; }
+.index-page .pending { color: var(--muted); }
+code { font-family: "D2Coding", "Consolas", "Menlo", monospace; background: var(--inline-code-bg); padding: 1px 7px;
+  border-radius: 5px; font-size: 0.9em; }
+pre { margin: 0; background: var(--code-bg); color: var(--code-ink); padding: 18px 22px; border-radius: 10px;
+  font-size: 19.8px; line-height: 1.45; overflow: hidden; white-space: pre-wrap; word-break: break-all; }
+pre code { background: none; padding: 0; font-size: inherit; color: inherit; }
+.slide .text pre { font-size: 18px; }
+figure { margin: 0; text-align: center; max-width: 100%; width: 100%; flex: 1 1 0; min-height: 120px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; }
+figure img { flex: 1 1 0; min-height: 0; max-width: 100%; object-fit: contain; border-radius: 8px; border: 1px solid var(--line); }
+figure figcaption { flex: none; font-size: 16.2px; color: var(--muted); margin-top: 6px; }
+.slide .media pre { flex: none; }
+.slide.layout-image:not(.has-media) .body { align-items: center; }
+/* ===== 구성 요소: 카드, 단계, 숫자, 강조 상자, 비교 (html.md "구성 요소") ===== */
+li::marker { color: var(--accent); }
+.slide.layout-stack .body { gap: 18px; }
+.cards { display: grid; gap: 16px; grid-template-columns: repeat(3, 1fr); }
+.cards.cols-1 { grid-template-columns: 1fr; }
+.cards.cols-2 { grid-template-columns: repeat(2, 1fr); }
+.cards.cols-4 { grid-template-columns: repeat(4, 1fr); }
+.cards.cols-5 { grid-template-columns: repeat(5, 1fr); }
+.card { background: var(--inline-code-bg); border: 1px solid var(--line); border-top: 5px solid var(--accent);
+  border-radius: 12px; padding: 16px 20px 18px; min-width: 0; }
+.card-t { font-weight: 700; color: var(--heading); font-size: 1.02em; margin-bottom: 6px; display: flex; align-items: center; gap: 10px; }
+.card-n, .step-n { flex: none; display: inline-flex; align-items: center; justify-content: center; width: 34px; height: 34px;
+  border-radius: 50%; background: var(--accent); color: var(--on-grad); font-size: 18px; font-weight: 700; }
+.card-d, .step-d { font-size: 0.86em; line-height: 1.45; }
+.card ul, .step ul, .panel ul { font-size: 0.86em; padding-left: 1.1em; }
+.card li, .step li, .panel li { margin: 3px 0; }
+.steps { display: flex; gap: 34px; align-items: stretch; }
+.step { position: relative; flex: 1 1 0; min-width: 0; background: var(--paper); border: 2px solid var(--accent-soft);
+  border-radius: 12px; padding: 16px 16px 16px; display: flex; flex-direction: column; gap: 6px; }
+.step-t { font-weight: 700; color: var(--heading); }
+.step:not(:last-child)::after { content: ""; position: absolute; right: -27px; top: 50%; transform: translateY(-50%);
+  border: 11px solid transparent; border-left: 16px solid var(--accent); border-right: 0; }
+.steps.vertical { flex-direction: column; gap: 22px; }
+.steps.vertical .step { flex: none; flex-direction: row; flex-wrap: wrap; align-items: center; column-gap: 14px; padding: 12px 18px; }
+.steps.vertical .step-d { flex: 1 1 40%; }
+.steps.vertical .step:not(:last-child)::after { right: auto; left: 26px; top: auto; bottom: -22px; transform: none;
+  border: 9px solid transparent; border-top: 13px solid var(--accent); border-bottom: 0; }
+.stats { display: flex; gap: 16px; }
+.stat { flex: 1 1 0; min-width: 0; text-align: center; border-radius: 12px; padding: 16px 10px;
+  background: linear-gradient(135deg, var(--grad-a), var(--grad-b)); color: var(--on-grad); }
+.stat-v { font-size: 1.7em; font-weight: 800; line-height: 1.2; }
+.stat-l { font-size: 0.78em; opacity: .9; margin-top: 4px; }
+.callout { border-left: 8px solid var(--accent); background: var(--accent-soft); border-radius: 0 12px 12px 0;
+  padding: 14px 22px; color: var(--heading); font-weight: 600; }
+.callout.warn { border-left-color: var(--colab); background: var(--inline-code-bg); color: var(--ink); }
+.callout strong { color: inherit; }
+.compare { display: grid; gap: 18px; grid-template-columns: repeat(2, 1fr); }
+.compare.cols-3 { grid-template-columns: repeat(3, 1fr); }
+.panel { border: 1px solid var(--line); border-radius: 12px; overflow: hidden; background: var(--paper); min-width: 0; }
+.panel-t { background: var(--accent-soft); color: var(--heading); font-weight: 700; padding: 9px 18px; }
+.panel > :not(.panel-t) { margin: 12px 18px; }
+.panel:nth-child(2) .panel-t { background: var(--heading); color: var(--on-grad); }
+
+/* ===== 도식 (인라인 SVG, result/diagrams/*.svg). 색은 아래 클래스로만 지정한다 ===== */
+figure.diagram svg { flex: 1 1 0; min-height: 0; width: 100%; max-width: 100%; display: block; }
+.dg text { font-family: inherit; fill: var(--ink); font-size: 22px; }
+.dg .t-head { fill: var(--heading); font-weight: 700; }
+.dg .t-muted { fill: var(--muted); }
+.dg .t-acc { fill: var(--accent); font-weight: 700; }
+.dg .t-on { fill: var(--on-grad); font-weight: 700; }
+.dg .t-code { font-family: "D2Coding", "Consolas", "Menlo", monospace; }
+.dg .t-s { font-size: 17px; }
+.dg .t-l { font-size: 28px; }
+.dg .box { fill: var(--paper); stroke: var(--heading); stroke-width: 2; }
+.dg .box-soft { fill: var(--accent-soft); stroke: none; }
+.dg .box-gray { fill: var(--inline-code-bg); stroke: var(--line); stroke-width: 2; }
+.dg .box-acc { fill: var(--accent); stroke: none; }
+.dg .box-head { fill: var(--heading); stroke: none; }
+.dg .box-warn { fill: var(--colab); stroke: none; }
+.dg .box-dark { fill: var(--code-bg); stroke: none; }
+.dg .box-dash { fill: none; stroke: var(--muted); stroke-width: 2; stroke-dasharray: 8 6; }
+.dg .line { fill: none; stroke: var(--muted); stroke-width: 2.5; }
+.dg .line-acc { fill: none; stroke: var(--accent); stroke-width: 3; }
+.dg .line-warn { fill: none; stroke: var(--colab); stroke-width: 3; }
+.dg .line-grid { fill: none; stroke: var(--line); stroke-width: 1.5; }
+.dg .arrhead { fill: var(--muted); }
+.dg .arrhead-acc { fill: var(--accent); }
+.dg .op { opacity: .55; }
+
+table { border-collapse: collapse; font-size: 21.6px; width: 100%; }
+th, td { border: 1px solid var(--line); padding: 8px 14px; text-align: left; }
+th { background: var(--accent-soft); color: var(--heading); }
+
+.slide.layout-section, .slide.layout-title { background: linear-gradient(135deg, var(--grad-a), var(--grad-b));
+  color: var(--on-grad); justify-content: center; }
+.slide.layout-section h2, .slide.layout-title h2 { color: var(--on-grad); border: none; font-size: 64px; margin-bottom: 20px; }
+.slide.layout-title h2 { font-size: 72px; }
+.slide.layout-section .body, .slide.layout-title .body { flex: 0 0 auto; font-size: 28.8px; }
+.slide.layout-section .body, .slide.layout-title .body { color: var(--on-grad); opacity: .88; }
+.slide.layout-section strong, .slide.layout-title strong,
+.slide.layout-section a, .slide.layout-title a { color: var(--on-grad); }
+.slide.layout-section code, .slide.layout-title code { color: var(--ink); }
+.notes { display: none; }
+
+/* ===== 하단 네비게이션 바 ===== */
+#bar { position: fixed; left: 0; right: 0; bottom: 0; height: 56px; z-index: 30; display: flex; align-items: center; gap: 8px;
+  padding: 0 14px; background: var(--ui-bg); color: var(--ui-ink); font-size: 14px; transition: transform .25s; }
+body.fs #bar { background: color-mix(in srgb, var(--ui-bg) 88%, transparent); height: 56px; }
+body.fs.idle #bar { transform: translateY(100%); }
+body.fs.idle { cursor: none; }
+#bar button, #bar a.btn { background: transparent; border: 1px solid transparent; color: var(--ui-ink); width: 38px; height: 38px;
+  border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; font-size: 20px; text-decoration: none; }
+#bar button:hover, #bar a.btn:hover { background: rgba(255,255,255,.12); }
+#bar button.on { color: var(--ui-accent); }
+#bar button[disabled] { opacity: .3; cursor: default; }
+#btn-prev, #btn-next { font-size: 30px; line-height: 1; padding-bottom: 4px; }
+#bar #btn-notes { width: auto; padding: 0 12px; font-size: 14px; white-space: nowrap; }
+#pager { display: flex; align-items: center; gap: 4px; white-space: nowrap; font-variant-numeric: tabular-nums; }
+#page-input { width: 52px; text-align: center; background: rgba(255,255,255,.1); color: var(--ui-ink);
+  border: 1px solid rgba(255,255,255,.25); border-radius: 6px; padding: 5px 2px; font: inherit; -moz-appearance: textfield; }
+#page-input::-webkit-inner-spin-button { display: none; }
+#seek { position: relative; flex: 1; min-width: 80px; height: 22px; cursor: pointer; margin: 0 6px; touch-action: none; }
+#seek::before { content: ""; position: absolute; left: 0; right: 0; top: 9px; height: 4px; border-radius: 2px; background: rgba(255,255,255,.22); }
+#seek-fill { position: absolute; left: 0; top: 9px; height: 4px; border-radius: 2px; background: var(--ui-accent); width: 0; }
+#seek-thumb { position: absolute; top: 4px; width: 14px; height: 14px; margin-left: -7px; border-radius: 50%; background: var(--ui-accent);
+  box-shadow: 0 0 0 3px rgba(0,0,0,.25); left: 0; }
+.tick { position: absolute; top: 5px; width: 2px; height: 12px; margin-left: -1px; background: rgba(255,255,255,.6); border-radius: 1px; }
+#seek-tip { position: absolute; bottom: 28px; transform: translateX(-50%); background: #000; color: #fff; padding: 5px 10px; border-radius: 6px;
+  font-size: 13px; white-space: nowrap; max-width: 420px; overflow: hidden; text-overflow: ellipsis; display: none; pointer-events: none; }
+/* 일차 선택 버튼 (하단 바, 목차 상단) */
+#days { display: flex; gap: 2px; flex: none; background: rgba(255,255,255,.08); border-radius: 9px; padding: 3px; }
+#days a, #toc-days a { padding: 5px 11px; border-radius: 7px; color: var(--ui-ink); text-decoration: none; font-size: 13px; white-space: nowrap; font-weight: 600; }
+#days a:hover, #toc-days a:hover { background: rgba(255,255,255,.14); }
+#days a.cur, #toc-days a.cur { background: var(--ui-accent); color: var(--ui-bg); }
+#toc-days { display: flex; gap: 4px; margin-bottom: 8px; }
+#toc-days a { flex: 1; text-align: center; border: 1px solid rgba(255,255,255,.2); }
+#bar-title { flex: 0 1 260px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; opacity: .8; }
+
+/* ===== 좌측 목차 ===== */
+#toc { position: fixed; left: 0; top: 0; bottom: var(--bar-h); width: var(--toc-w); z-index: 20; background: var(--ui-bg); color: var(--ui-ink);
+  display: flex; flex-direction: column; border-right: 1px solid rgba(255,255,255,.1); transition: transform .2s; }
+body.toc-closed #toc, body.fs #toc { transform: translateX(-100%); }
+#toc-head { padding: 12px; border-bottom: 1px solid rgba(255,255,255,.1); }
+#toc-head h1 { margin: 0 0 8px; font-size: 15px; font-weight: 700; color: var(--ui-accent); }
+#toc-search { width: 100%; padding: 7px 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,.25); background: rgba(255,255,255,.08);
+  color: var(--ui-ink); font: inherit; font-size: 13px; }
+#toc-list { flex: 1; overflow-y: auto; padding: 6px 0 14px; font-size: 13.5px; }
+.toc-group .toc-ch { display: flex; align-items: center; gap: 4px; padding: 7px 10px 7px 6px; font-weight: 700; cursor: pointer; }
+.toc-group .toc-ch:hover, .toc-group li a:hover { background: rgba(255,255,255,.08); }
+.toc-caret { width: 20px; height: 20px; flex: none; background: none; border: 0; padding: 0; opacity: .7; transition: transform .15s; }
+.toc-group.open .toc-caret { transform: rotate(90deg); }
+.toc-group ul { list-style: none; margin: 0; padding: 0; display: none; }
+.toc-group.open ul { display: block; }
+.toc-group li { margin: 0; }
+.toc-group li a { display: flex; gap: 8px; padding: 5px 12px 5px 34px; cursor: pointer; line-height: 1.35; color: inherit; text-decoration: none; opacity: .85; }
+.toc-group li a .n { flex: none; width: 26px; text-align: right; opacity: .55; font-variant-numeric: tabular-nums; }
+.toc-ch.cur, .toc-group li a.cur { color: var(--ui-accent); background: rgba(255,255,255,.1); opacity: 1; }
+.toc-group li a.cur { font-weight: 700; }
+.toc-hide { display: none !important; }
+
+/* ===== 좌우 이동 버튼 (슬라이드 위에 마우스를 올리면 표시) ===== */
+.edge { position: absolute; top: 50%; transform: translateY(-50%); z-index: 10; width: 48px; height: 96px; border: 0; border-radius: 10px;
+  background: rgba(0,0,0,.35); color: #fff; font-size: 40px; opacity: 0; transition: opacity .2s; }
+#viewport:hover .edge { opacity: .75; }
+.edge:hover { opacity: 1 !important; background: rgba(0,0,0,.55); }
+.edge[disabled] { display: none; }
+#edge-prev { left: 8px; } #edge-next { right: 8px; }
+
+/* ===== 발표자 노트 / 도움말 ===== */
+#notes-panel { display: none; position: fixed; left: var(--toc-left); right: 0; bottom: var(--bar-h); max-height: 34vh; overflow: auto; z-index: 25;
+  background: rgba(15, 23, 42, 0.96); color: #e2e8f0; padding: 14px 24px; font-size: 18px; line-height: 1.55; }
+body.show-notes #notes-panel { display: block; }
+#help-box { display: none; position: fixed; inset: 0; z-index: 50; background: rgba(0,0,0,.6); align-items: center; justify-content: center; }
+#help-box.on { display: flex; }
+#help-box .card { background: var(--ui-bg); color: var(--ui-ink); padding: 24px 32px; border-radius: 14px; min-width: 340px; font-size: 15px; line-height: 1.9; }
+#help-box h3 { margin: 0 0 8px; color: var(--ui-accent); }
+kbd { background: rgba(255,255,255,.15); border-radius: 4px; padding: 1px 7px; font-family: inherit; font-size: 13px; }
+
+@media (max-width: 1180px) { #bar-title { display: none; } }
+@media (max-width: 760px) { #days { display: none; } }
+@media (max-width: 900px) {
+  :root { --toc-left: 0px; }
+  #bar-title { display: none; }
+  #toc { box-shadow: 4px 0 20px rgba(0,0,0,.5); }
+  body:not(.toc-closed) #toc { transform: none; }
+}
+
+@media print {
+  html, body { overflow: visible; background: #fff; height: auto; }
+  #viewport { position: static; }
+  #stage { position: static; transform: none !important; width: auto; height: auto; }
+  .slide { position: relative; display: flex !important; width: 1280px; height: 720px; page-break-after: always; }
+  #bar, #toc, #notes-panel, .edge, #help-box, #stage-logo { display: none !important; }
+}
+
+/* 검사 모드 (?shot=1, ?check=1): 슬라이드만 보이게 한다 */
+body.shot { --bar-h: 0px; --toc-left: 0px; }
+body.shot #bar, body.shot #toc, body.shot .edge, body.shot #notes-panel, body.shot #check-result { display: none !important; }
+
+</style>
+
+<script>
+/* 슬라이드 테마: CSS 변수를 덮어쓴다. 슬라이드와 색상 설정 페이지가 함께 사용한다.
+   슬라이드는 CSS 기본값 + 빌드에 구운 theme.json 만 쓴다. read/save 는 쓰지 않는다(호환용으로 남김) */
+(function (global) {
+  var KEY = 'slideTheme';
+
+  // key = JSON 키, css = CSS 변수명
+  var VARS = [
+    { group: '슬라이드', key: 'paper', css: '--paper', label: '슬라이드 배경' },
+    { group: '슬라이드', key: 'ink', css: '--ink', label: '본문 글자' },
+    { group: '슬라이드', key: 'heading', css: '--heading', label: '제목·강조 글자' },
+    { group: '슬라이드', key: 'accentSoft', css: '--accent-soft', label: '제목 밑줄·표 머리글' },
+    { group: '슬라이드', key: 'accent', css: '--accent', label: '링크' },
+    { group: '슬라이드', key: 'muted', css: '--muted', label: '이미지 설명 글자' },
+    { group: '슬라이드', key: 'line', css: '--line', label: '표·이미지 테두리' },
+    { group: '섹션/표지', key: 'gradA', css: '--grad-a', label: '그라디언트 시작' },
+    { group: '섹션/표지', key: 'gradB', css: '--grad-b', label: '그라디언트 끝' },
+    { group: '섹션/표지', key: 'onGrad', css: '--on-grad', label: '글자' },
+    { group: '코드·버튼', key: 'codeBg', css: '--code-bg', label: '코드 블록 배경' },
+    { group: '코드·버튼', key: 'codeInk', css: '--code-ink', label: '코드 블록 글자' },
+    { group: '코드·버튼', key: 'inlineCodeBg', css: '--inline-code-bg', label: '인라인 코드 배경' },
+    { group: '코드·버튼', key: 'colab', css: '--colab', label: 'Colab 버튼' },
+    { group: '코드·버튼', key: 'colabInk', css: '--colab-ink', label: 'Colab 버튼 글자' },
+    { group: '바깥·UI', key: 'bg', css: '--bg', label: '슬라이드 바깥 배경' },
+    { group: '바깥·UI', key: 'uiBg', css: '--ui-bg', label: '하단 바·목차 배경' },
+    { group: '바깥·UI', key: 'uiInk', css: '--ui-ink', label: '하단 바·목차 글자' },
+    { group: '바깥·UI', key: 'uiAccent', css: '--ui-accent', label: '진행 표시·현재 항목' }
+  ];
+
+  var PRESETS = {
+    '기본 (블루)': {},
+    '다크': { paper: '#111827', ink: '#e5e7eb', heading: '#93c5fd', accentSoft: '#1f2937', accent: '#60a5fa', muted: '#9ca3af', line: '#374151',
+      gradA: '#0b1220', gradB: '#1e40af', onGrad: '#f9fafb', codeBg: '#030712', codeInk: '#e5e7eb', inlineCodeBg: '#1f2937',
+      colab: '#f9ab00', colabInk: '#111827', bg: '#000000', uiBg: '#0b1220', uiInk: '#e5e7eb', uiAccent: '#fbbf24' },
+    '세피아': { paper: '#fbf5e9', ink: '#3b2f23', heading: '#7c3f12', accentSoft: '#f0dfc2', accent: '#b45309', muted: '#8a7560', line: '#e6d6b8',
+      gradA: '#7c3f12', gradB: '#c2762b', onGrad: '#fffaf0', codeBg: '#2b2118', codeInk: '#f3e8d3', inlineCodeBg: '#f0e4cc',
+      colab: '#f9ab00', colabInk: '#2b2118', bg: '#2b2118', uiBg: '#2b2118', uiInk: '#f3e8d3', uiAccent: '#f59e0b' },
+    '숲 (그린)': { paper: '#f7fbf8', ink: '#1b2e24', heading: '#14532d', accentSoft: '#d1fae5', accent: '#047857', muted: '#5b7266', line: '#d5e5da',
+      gradA: '#14532d', gradB: '#16a34a', onGrad: '#ffffff', codeBg: '#10261a', codeInk: '#dcfce7', inlineCodeBg: '#e6f4ea',
+      colab: '#f9ab00', colabInk: '#1b2e24', bg: '#0b1a12', uiBg: '#0f2418', uiInk: '#dcfce7', uiAccent: '#facc15' },
+    '하이 콘트라스트': { paper: '#ffffff', ink: '#000000', heading: '#000000', accentSoft: '#ffe600', accent: '#0000cc', muted: '#333333', line: '#000000',
+      gradA: '#000000', gradB: '#1a1a1a', onGrad: '#ffe600', codeBg: '#000000', codeInk: '#ffffff', inlineCodeBg: '#eeeeee',
+      colab: '#ffe600', colabInk: '#000000', bg: '#000000', uiBg: '#000000', uiInk: '#ffffff', uiAccent: '#ffe600' }
+  };
+
+  function b64encode(str) { return btoa(unescape(encodeURIComponent(str))); }
+  function b64decode(str) { return decodeURIComponent(escape(atob(str))); }
+
+  function fromQuery() {
+    try {
+      var m = /[?&]theme=([^&#]+)/.exec(location.search);
+      return m ? JSON.parse(b64decode(decodeURIComponent(m[1]))) : null;
+    } catch (e) { return null; }
+  }
+  function fromStorage() {
+    try { var s = localStorage.getItem(KEY); return s ? JSON.parse(s) : null; } catch (e) { return null; }
+  }
+  function save(theme) {
+    try {
+      if (theme && Object.keys(theme).length) localStorage.setItem(KEY, JSON.stringify(theme));
+      else localStorage.removeItem(KEY);
+      return true;
+    } catch (e) { return false; }
+  }
+  function read() { return fromQuery() || fromStorage() || null; }
+
+  function apply(theme, el) {
+    el = el || document.documentElement;
+    VARS.forEach(function (v) {
+      if (theme && theme[v.key]) el.style.setProperty(v.css, theme[v.key]);
+      else el.style.removeProperty(v.css);
+    });
+  }
+
+  // 현재 적용된 계산값(기본값 포함)을 {key: '#rrggbb'} 로 읽는다
+  function current(el) {
+    var cs = getComputedStyle(el || document.documentElement), out = {};
+    VARS.forEach(function (v) { out[v.key] = toHex(cs.getPropertyValue(v.css).trim()); });
+    return out;
+  }
+  function toHex(c) {
+    if (/^#[0-9a-f]{6}$/i.test(c)) return c.toLowerCase();
+    if (/^#[0-9a-f]{3}$/i.test(c)) return '#' + c.slice(1).split('').map(function (x) { return x + x; }).join('').toLowerCase();
+    var m = /rgba?\((\d+)[ ,]+(\d+)[ ,]+(\d+)/.exec(c);
+    if (m) return '#' + [1, 2, 3].map(function (i) { return ('0' + (+m[i]).toString(16)).slice(-2); }).join('');
+    return '#000000';
+  }
+
+  // 대비비 (WCAG)
+  function lum(hex) {
+    var n = parseInt(hex.slice(1), 16), r = [(n >> 16) & 255, (n >> 8) & 255, n & 255].map(function (v) {
+      v /= 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
+    });
+    return 0.2126 * r[0] + 0.7152 * r[1] + 0.0722 * r[2];
+  }
+  function contrast(a, b) {
+    var x = lum(a), y = lum(b);
+    return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05);
+  }
+
+  // 페이지 간 링크: result/ 의 파일(_로 시작)에서는 대상 파일명 앞에 _ 를 붙인다. (data-nav="slide_1.html#3" -> _slide_1.html#3)
+  document.addEventListener('DOMContentLoaded', function () {
+    if (!/(^|\/)_[^\/]*$/.test(location.pathname)) return;
+    Array.prototype.forEach.call(document.querySelectorAll('a[data-nav]'), function (a) {
+      a.setAttribute('href', '_' + a.getAttribute('data-nav'));
+    });
+  });
+
+  global.SlideTheme = { VARS: VARS, PRESETS: PRESETS, read: read, save: save, apply: apply, current: current,
+    contrast: contrast, encode: function (t) { return encodeURIComponent(b64encode(JSON.stringify(t))); } };
+
+  // 슬라이드는 빌드에 구운 theme.json 색만 쓴다. 보는 사람이 브라우저에서 색을 바꾸는 기능(localStorage, ?theme=)은 없앴다:
+  // 노트북 출력 이미지는 테마를 따라가지 못해서, 색은 제작자가 정해 빌드에 굽는다 (루트의 theme.html -> theme.json).
+})(window);
+
+</script>
+</head>
+<body>
+<nav id="toc" aria-label="목차">
+  <div id="toc-head"><h1>컴퓨터 비전 & 영상 분석 - 모듈 8</h1><div id="toc-days"><a href="slide_1.html" data-nav="slide_1.html" title="모듈 1: 컴퓨터 비전과 OpenCV">모듈 1</a><a href="slide_2.html" data-nav="slide_2.html" title="모듈 2: PyTorch와 CNN 분류·회귀">모듈 2</a><a href="slide_3.html" data-nav="slide_3.html" title="모듈 3: 세그멘테이션">모듈 3</a><a href="slide_4.html" data-nav="slide_4.html" title="모듈 4: Object Detection과 YOLO">모듈 4</a><a href="slide_5.html" data-nav="slide_5.html" title="모듈 5: 영상(Video) 분석 기초">모듈 5</a><a href="slide_6.html" data-nav="slide_6.html" title="모듈 6: 객체 추적과 영상 분석 응용">모듈 6</a><a href="slide_7.html" data-nav="slide_7.html" title="모듈 7: 특징점, 카메라와 측정">모듈 7</a><a href="slide_8.html" data-nav="slide_8.html" title="모듈 8: 이상 탐지 기반 불량 검사" class="cur" aria-current="page">모듈 8</a></div><input id="toc-search" type="search" placeholder="슬라이드 검색 ( / )"></div>
+  <div id="toc-list">
+<div class="toc-group"><div class="toc-ch" data-i="0"><button class="toc-caret" aria-label="접기/펴기">▸</button><span>컴퓨터 비전 &amp; 영상 분석</span></div><ul>
+</ul></div>
+<div class="toc-group"><div class="toc-ch" data-i="1"><button class="toc-caret" aria-label="접기/펴기">▸</button><span>비전 불량 검사의 문제 정의</span></div><ul>
+<li><a href="#3" data-i="2"><span class="n">3</span><span>불량 검사를 푸는 네 가지 방법</span></a></li>
+<li><a href="#4" data-i="3"><span class="n">4</span><span>불량 데이터의 현실: 적고, 계속 바뀐다</span></a></li>
+<li><a href="#5" data-i="4"><span class="n">5</span><span>정상만으로 학습하는 이상 탐지</span></a></li>
+<li><a href="#6" data-i="5"><span class="n">6</span><span>미검과 과검: 비용이 다른 두 가지 실수</span></a></li>
+<li><a href="#7" data-i="6"><span class="n">7</span><span>촬영 조건 표준화가 먼저다</span></a></li>
+</ul></div>
+<div class="toc-group"><div class="toc-ch" data-i="7"><button class="toc-caret" aria-label="접기/펴기">▸</button><span>규칙 기반 검사</span></div><ul>
+<li><a href="#9" data-i="8"><span class="n">9</span><span>기준 이미지(Golden Template) 비교</span></a></li>
+<li><a href="#10" data-i="9"><span class="n">10</span><span>정렬: 먼저 위치를 맞춘다</span></a></li>
+<li><a href="#11" data-i="10"><span class="n">11</span><span>차영상에서 판정까지</span></a></li>
+<li><a href="#12" data-i="11"><span class="n">12</span><span>규칙 기반 검사의 한계</span></a></li>
+<li><a href="#13" data-i="12"><span class="n">13</span><span>실습: 규칙 기반 불량 검사 (Colab)</span></a></li>
+</ul></div>
+<div class="toc-group"><div class="toc-ch" data-i="13"><button class="toc-caret" aria-label="접기/펴기">▸</button><span>딥러닝 이상 탐지</span></div><ul>
+<li><a href="#15" data-i="14"><span class="n">15</span><span>딥러닝 이상 탐지의 세 갈래</span></a></li>
+<li><a href="#16" data-i="15"><span class="n">16</span><span>재구성 기반: Autoencoder</span></a></li>
+<li><a href="#17" data-i="16"><span class="n">17</span><span>특징 임베딩 기반: 사전학습 Backbone의 특징</span></a></li>
+<li><a href="#18" data-i="17"><span class="n">18</span><span>PaDiM: 위치마다 정상의 분포를 기억</span></a></li>
+<li><a href="#19" data-i="18"><span class="n">19</span><span>PatchCore: 정상 패치 메모리 뱅크</span></a></li>
+<li><a href="#20" data-i="19"><span class="n">20</span><span>지식 증류 기반: Student-Teacher</span></a></li>
+<li><a href="#21" data-i="20"><span class="n">21</span><span>이상 점수와 이상 맵</span></a></li>
+<li><a href="#22" data-i="21"><span class="n">22</span><span>공개 데이터셋: MVTec AD</span></a></li>
+<li><a href="#23" data-i="22"><span class="n">23</span><span>Anomalib 라이브러리</span></a></li>
+</ul></div>
+<div class="toc-group"><div class="toc-ch" data-i="23"><button class="toc-caret" aria-label="접기/펴기">▸</button><span>평가와 현장 적용</span></div><ul>
+<li><a href="#25" data-i="24"><span class="n">25</span><span>혼동 행렬로 보는 미검과 과검</span></a></li>
+<li><a href="#26" data-i="25"><span class="n">26</span><span>이미지 단위 AUROC</span></a></li>
+<li><a href="#27" data-i="26"><span class="n">27</span><span>픽셀 단위 평가</span></a></li>
+<li><a href="#28" data-i="27"><span class="n">28</span><span>임계값 선택: 미검과 과검의 균형</span></a></li>
+<li><a href="#29" data-i="28"><span class="n">29</span><span>현장 운영: 저장, 재검, 재학습</span></a></li>
+<li><a href="#30" data-i="29"><span class="n">30</span><span>실습: 딥러닝 이상 탐지 (Colab)</span></a></li>
+</ul></div>
+<div class="toc-group"><div class="toc-ch" data-i="30"><button class="toc-caret" aria-label="접기/펴기">▸</button><span>핵심 정리</span></div><ul>
+<li><a href="#32" data-i="31"><span class="n">32</span><span>핵심 개념 정리</span></a></li>
+</ul></div>
+  </div>
+</nav>
+<div id="viewport">
+  <div id="stage">
+<section class="slide layout-title" id="s1"><h2>컴퓨터 비전 &amp; 영상 분석</h2><div class="body"><p><strong>OpenCV부터 YOLO까지</strong></p><p>모듈 8: 이상 탐지 기반 불량 검사</p></div><div class="notes"><p>제조 현장의 비전 불량 검사를 규칙 기반 방법과 딥러닝 이상 탐지(Anomaly Detection) 두 갈래로 다루는 덱입니다. 핵심 질문은 "불량 사진이 거의 없을 때 어떻게 불량을 찾는가"입니다.</p></div></section>
+<section class="slide layout-section" id="s2"><h2>비전 불량 검사의 문제 정의</h2><div class="body"></div><div class="notes"><p>불량 검사를 어떤 문제로 정의하느냐에 따라 필요한 데이터와 방법이 달라진다는 것을 다루는 장입니다. 기술보다 문제 정의와 현장 조건이 먼저라는 점을 강조합니다.</p></div></section>
+<section class="slide layout-stack" id="s3"><h2>불량 검사를 푸는 네 가지 방법</h2><div class="body"><table><thead><tr><th>방법</th><th>출력</th><th>학습에 필요한 데이터</th></tr></thead><tbody><tr><td>분류 (Classification)</td><td>정상/불량 라벨</td><td>정상과 불량 이미지, 이미지별 라벨</td></tr><tr><td>검출 (Object Detection)</td><td>불량 위치의 박스</td><td>불량 이미지와 박스 라벨</td></tr><tr><td>분할 (Segmentation)</td><td>불량 영역 마스크</td><td>불량 이미지와 픽셀 마스크</td></tr><tr><td>이상 탐지 (Anomaly Detection)</td><td>이상 점수, 이상 맵</td><td><strong>정상 이미지만</strong></td></tr></tbody></table><figure class="diagram"><svg class="dg" role="img" aria-label="같은 불량을 네 방법으로 보면 출력이 다르다" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 250"><defs><marker id="arr-189" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="arrhead"/></marker><marker id="arr-acc-189" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="arrhead-acc"/></marker></defs>
+<rect x="20" y="10" width="250" height="190" rx="8" class="box"/>
+<rect x="75" y="30" width="140" height="100" rx="10" class="box-gray"/>
+<line x1="161.8" y1="60.0" x2="187.0" y2="85.0" class="line-warn" stroke-width="5"/>
+<text x="145" y="172" text-anchor="middle" class="t-s t-muted">라벨: 불량</text>
+<text x="145" y="236" text-anchor="middle" class="t-head">분류</text>
+<rect x="295" y="10" width="250" height="190" rx="8" class="box"/>
+<rect x="350" y="30" width="140" height="100" rx="10" class="box-gray"/>
+<line x1="436.8" y1="60.0" x2="462.0" y2="85.0" class="line-warn" stroke-width="5"/>
+<rect x="432" y="42" width="60" height="60" rx="4" class="box-dash" style="fill:none"/>
+<text x="420" y="172" text-anchor="middle" class="t-s t-muted">박스</text>
+<text x="420" y="236" text-anchor="middle" class="t-head">검출</text>
+<rect x="570" y="10" width="250" height="190" rx="8" class="box"/>
+<rect x="625" y="30" width="140" height="100" rx="10" class="box-gray"/>
+<line x1="711.8" y1="60.0" x2="737.0" y2="85.0" class="line-warn" stroke-width="5"/>
+<ellipse cx="737" cy="72" rx="20" ry="9" transform="rotate(54 737 72)" class="box-acc"/>
+<text x="695" y="172" text-anchor="middle" class="t-s t-muted">마스크</text>
+<text x="695" y="236" text-anchor="middle" class="t-head">분할</text>
+<rect x="845" y="10" width="250" height="190" rx="8" class="box"/>
+<rect x="900" y="30" width="140" height="100" rx="10" class="box-gray"/>
+<line x1="986.8" y1="60.0" x2="1012.0" y2="85.0" class="line-warn" stroke-width="5"/>
+<circle cx="1012" cy="72" r="42" class="box-warn op"/>
+<circle cx="1012" cy="72" r="22" class="box-acc op"/>
+<text x="970" y="172" text-anchor="middle" class="t-s t-muted">이상 맵 + 점수</text>
+<text x="970" y="236" text-anchor="middle" class="t-head">이상 탐지</text>
+</svg><figcaption>같은 불량을 네 방법으로 보면 출력이 다르다</figcaption></figure></div><div class="notes"><p><strong>설명</strong> 불량 검사는 하나의 기술이 아니라 여러 방식으로 풀 수 있는 문제입니다. 분류, 검출, 분할은 모두 "불량이 어떻게 생겼는지"를 정답으로 가르쳐야 하는 지도 학습(Supervised Learning)입니다. 이상 탐지는 정상 이미지만 보여 주고 "정상과 다른 것"을 찾게 합니다. 시험 문제와 정답을 모두 주는 방식과, 모범 답안만 보여 주고 이상한 답안을 골라내게 하는 방식의 차이로 설명하면 쉽습니다.</p><p><strong>예상 질문</strong> Q: 어떤 방법이 가장 좋은가요? A: 정답은 없습니다. 불량 사진이 충분하고 종류가 정해져 있으면 분류나 검출이 더 정확하고 설명하기 쉬울 수 있습니다. 불량 사진이 적거나 종류를 미리 알 수 없을 때 이상 탐지가 유리합니다. 현장에서는 두 방식을 함께 쓰기도 합니다.</p><p><strong>주의</strong> 이상 탐지는 "어떤 종류의 불량인지"를 알려 주지 않습니다. 정상과 다르다는 것만 알려 줍니다. 불량 유형 분류가 필요하면 별도 분류 모델이 필요합니다.</p></div></section>
+<section class="slide layout-stack" id="s4"><h2>불량 데이터의 현실: 적고, 계속 바뀐다</h2><div class="body"><div class="cards cols-3"><div class="card"><div class="card-t">불량이 드물다</div><div class="card-d">공정이 안정될수록 불량 사진을 모으기 어렵다</div></div><div class="card"><div class="card-t">종류가 바뀐다</div><div class="card-d">공정, 자재, 설비가 바뀌면 처음 보는 불량이 생긴다</div></div><div class="card"><div class="card-t">라벨이 비싸다</div><div class="card-d">불량 영역을 그리려면 숙련자의 시간이 든다</div></div></div><figure class="diagram"><svg class="dg" role="img" aria-label="정상은 많고, 불량은 적고, 새 유형이 계속 생긴다" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 255"><defs><marker id="arr-190" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="arrhead"/></marker><marker id="arr-acc-190" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="arrhead-acc"/></marker></defs>
+<rect x="40" y="20" width="50" height="50" rx="6" class="box-soft"/>
+<rect x="102" y="20" width="50" height="50" rx="6" class="box-soft"/>
+<rect x="164" y="20" width="50" height="50" rx="6" class="box-soft"/>
+<rect x="226" y="20" width="50" height="50" rx="6" class="box-soft"/>
+<rect x="288" y="20" width="50" height="50" rx="6" class="box-soft"/>
+<rect x="350" y="20" width="50" height="50" rx="6" class="box-soft"/>
+<rect x="412" y="20" width="50" height="50" rx="6" class="box-soft"/>
+<rect x="40" y="82" width="50" height="50" rx="6" class="box-soft"/>
+<rect x="102" y="82" width="50" height="50" rx="6" class="box-soft"/>
+<rect x="164" y="82" width="50" height="50" rx="6" class="box-soft"/>
+<rect x="226" y="82" width="50" height="50" rx="6" class="box-soft"/>
+<rect x="288" y="82" width="50" height="50" rx="6" class="box-soft"/>
+<rect x="350" y="82" width="50" height="50" rx="6" class="box-soft"/>
+<rect x="412" y="82" width="50" height="50" rx="6" class="box-soft"/>
+<rect x="40" y="144" width="50" height="50" rx="6" class="box-soft"/>
+<rect x="102" y="144" width="50" height="50" rx="6" class="box-soft"/>
+<rect x="164" y="144" width="50" height="50" rx="6" class="box-soft"/>
+<rect x="226" y="144" width="50" height="50" rx="6" class="box-soft"/>
+<rect x="288" y="144" width="50" height="50" rx="6" class="box-soft"/>
+<rect x="350" y="144" width="50" height="50" rx="6" class="box-soft"/>
+<rect x="412" y="144" width="50" height="50" rx="6" class="box-soft"/>
+<text x="255" y="240" text-anchor="middle" class="t-head">정상: 많다</text>
+<rect x="560" y="60" width="64" height="64" rx="6" class="box-warn"/>
+<text x="592" y="99" text-anchor="middle" class="t-s">긁힘</text>
+<rect x="640" y="60" width="64" height="64" rx="6" class="box-warn"/>
+<text x="672" y="99" text-anchor="middle" class="t-s">찍힘</text>
+<text x="632" y="240" text-anchor="middle" class="t-head">불량: 적다</text>
+<line x1="720" y1="92" x2="820" y2="92" class="line" marker-end="url(#arr-190)"/>
+<text x="770" y="76" text-anchor="middle" class="t-s t-muted">공정 변경</text>
+<rect x="840" y="60" width="64" height="64" rx="6" class="box-dash"/>
+<text x="872" y="101" text-anchor="middle" class="t-l">?</text>
+<rect x="920" y="60" width="64" height="64" rx="6" class="box-dash"/>
+<text x="952" y="101" text-anchor="middle" class="t-l">?</text>
+<text x="912" y="240" text-anchor="middle" class="t-head">처음 보는 불량</text>
+</svg><figcaption>정상은 많고, 불량은 적고, 새 유형이 계속 생긴다</figcaption></figure></div><div class="notes"><p><strong>설명</strong> 잘 돌아가는 공장일수록 불량이 드뭅니다. 그래서 불량 사진 수백 장을 모으려면 오랜 시간이 걸리고, 모았을 때쯤에는 공정이 바뀌어 새로운 불량이 나타나기도 합니다. 불량 영역을 픽셀 단위로 칠하는 라벨링은 그 제품을 잘 아는 사람만 할 수 있어 비용도 큽니다. 감기 환자 사진만으로 모든 병을 진단하는 모델을 만들 수 없는 것과 비슷합니다.</p><p><strong>예상 질문</strong> Q: 불량 사진을 데이터 증강(Data Augmentation)으로 늘리면 되지 않나요? A: 도움은 되지만, 증강은 이미 본 불량을 변형할 뿐 처음 보는 유형을 만들어 내지는 못합니다. 그래서 정상만으로 학습하는 방식이 주목받습니다.</p><p><strong>주의</strong> 정상 이미지가 많다고 해서 모두 좋은 데이터는 아닙니다. 정상이라고 모은 이미지에 불량이 섞여 있으면 모델이 그 불량을 정상으로 배웁니다.</p></div></section>
+<section class="slide layout-stack" id="s5"><h2>정상만으로 학습하는 이상 탐지</h2><div class="body"><ul><li>학습: 정상 이미지만으로 "정상의 범위"를 익힌다</li><li>판정: 그 범위에서 얼마나 벗어났는지를 <strong>이상 점수</strong>로 낸다</li><li>처음 보는 유형의 불량도 "정상과 다르다"면 찾을 수 있다</li></ul><figure class="diagram"><svg class="dg" role="img" aria-label="정상 범위 안이면 정상, 밖이면 이상" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 280"><defs><marker id="arr-191" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="arrhead"/></marker><marker id="arr-acc-191" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="arrhead-acc"/></marker></defs>
+<text x="140" y="30" text-anchor="middle" class="t-head">학습: 정상만</text>
+<rect x="70" y="50" width="110" height="80" rx="6" class="box-soft"/>
+<rect x="86" y="66" width="110" height="80" rx="6" class="box-soft"/>
+<rect x="102" y="82" width="110" height="80" rx="6" class="box-soft"/>
+<text x="158" y="125" text-anchor="middle" class="t-s">정상</text>
+<line x1="260" y1="135" x2="360" y2="135" class="line" marker-end="url(#arr-191)"/>
+<ellipse cx="590" cy="140" rx="210" ry="100" class="box-soft"/>
+<circle cx="599" cy="191" r="5" class="box-head"/>
+<circle cx="507" cy="179" r="5" class="box-head"/>
+<circle cx="562" cy="127" r="5" class="box-head"/>
+<circle cx="732" cy="145" r="5" class="box-head"/>
+<circle cx="586" cy="174" r="5" class="box-head"/>
+<circle cx="697" cy="139" r="5" class="box-head"/>
+<circle cx="646" cy="99" r="5" class="box-head"/>
+<circle cx="551" cy="119" r="5" class="box-head"/>
+<circle cx="494" cy="91" r="5" class="box-head"/>
+<circle cx="457" cy="131" r="5" class="box-head"/>
+<circle cx="571" cy="124" r="5" class="box-head"/>
+<circle cx="596" cy="86" r="5" class="box-head"/>
+<circle cx="581" cy="152" r="5" class="box-head"/>
+<circle cx="661" cy="104" r="5" class="box-head"/>
+<circle cx="562" cy="76" r="5" class="box-head"/>
+<circle cx="557" cy="75" r="5" class="box-head"/>
+<circle cx="480" cy="178" r="5" class="box-head"/>
+<circle cx="448" cy="163" r="5" class="box-head"/>
+<circle cx="625" cy="125" r="5" class="box-head"/>
+<circle cx="638" cy="164" r="5" class="box-head"/>
+<circle cx="690" cy="130" r="5" class="box-head"/>
+<circle cx="530" cy="113" r="5" class="box-head"/>
+<circle cx="493" cy="138" r="5" class="box-head"/>
+<circle cx="519" cy="183" r="5" class="box-head"/>
+<circle cx="462" cy="107" r="5" class="box-head"/>
+<circle cx="528" cy="79" r="5" class="box-head"/>
+<text x="590" y="268" text-anchor="middle" class="t-head">정상 범위</text>
+<circle cx="640" cy="165" r="13" class="box-acc"/>
+<text x="700" y="205" text-anchor="middle" class="t-s t-acc">검사: 정상</text>
+<circle cx="960" cy="70" r="13" class="box-warn"/>
+<line x1="796" y1="104" x2="942" y2="74" class="line-acc" marker-end="url(#arr-acc-191)" stroke-dasharray="6 5"/>
+<text x="960" y="115" text-anchor="middle" class="t-s t-head">검사: 이상</text>
+<text x="960" y="145" text-anchor="middle" class="t-s t-muted">벗어난 정도 = 이상 점수</text>
+</svg><figcaption>정상 범위 안이면 정상, 밖이면 이상</figcaption></figure></div><div class="notes"><p><strong>설명</strong> 이상 탐지(Anomaly Detection)는 정상이 무엇인지만 배우고, 정상에서 벗어난 정도를 숫자로 표현합니다. 은행이 평소 카드 사용 패턴을 학습해 두었다가 갑자기 해외에서 큰 금액이 결제되면 의심하는 것과 같은 원리입니다. 불량의 모양을 미리 알 필요가 없으므로 처음 보는 불량에도 반응할 수 있다는 것이 가장 큰 장점입니다.</p><p><strong>예상 질문</strong> Q: 정상 이미지는 몇 장이나 필요한가요? A: 방법과 제품에 따라 다르므로 정해진 숫자는 없습니다. 중요한 것은 장 수보다 현장에서 생기는 정상 편차(밝기, 위치, 무늬 차이)를 골고루 담는 것입니다.</p><p><strong>주의</strong> "정상과 다르다"가 곧 "불량"은 아닙니다. 조명이 바뀌거나 먼지가 묻은 정상품도 정상과 다르게 보일 수 있습니다. 그래서 최종 판정에는 임계값과 사람의 확인이 함께 필요합니다.</p></div></section>
+<section class="slide layout-stack" id="s6"><h2>미검과 과검: 비용이 다른 두 가지 실수</h2><div class="body"><div class="compare cols-2"><div class="panel"><div class="panel-t">미검 (놓침, False Negative)</div><ul><li>불량을 정상으로 통과시킴</li><li>고객 불만, 리콜, 신뢰 하락</li></ul></div><div class="panel"><div class="panel-t">과검 (오탐, False Positive)</div><ul><li>정상을 불량으로 판정함</li><li>재검 인력, 버려지는 양품</li></ul></div></div><figure class="diagram"><svg class="dg" role="img" aria-label="두 실수는 결과가 다른 곳으로 간다" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 165"><defs><marker id="arr-192" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="arrhead"/></marker><marker id="arr-acc-192" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="arrhead-acc"/></marker></defs>
+<rect x="20" y="10" width="160" height="60" rx="8" class="box-warn"/>
+<text x="100" y="48" text-anchor="middle">불량품</text>
+<line x1="184" y1="40" x2="246" y2="40" class="line" marker-end="url(#arr-192)"/>
+<rect x="250" y="10" width="220" height="60" rx="8" class="box-head"/>
+<text x="360" y="48" text-anchor="middle" class="t-on">판정: 정상</text>
+<line x1="474" y1="40" x2="536" y2="40" class="line" marker-end="url(#arr-192)"/>
+<rect x="540" y="10" width="260" height="60" rx="8" class="box"/>
+<text x="670" y="48" text-anchor="middle">고객에게 전달</text>
+<rect x="840" y="16" width="120" height="48" rx="24" class="box-warn"/>
+<text x="900" y="48" text-anchor="middle" class="t-head">미검</text>
+<rect x="20" y="100" width="160" height="60" rx="8" class="box-soft"/>
+<text x="100" y="138" text-anchor="middle">정상품</text>
+<line x1="184" y1="130" x2="246" y2="130" class="line" marker-end="url(#arr-192)"/>
+<rect x="250" y="100" width="220" height="60" rx="8" class="box-head"/>
+<text x="360" y="138" text-anchor="middle" class="t-on">판정: 불량</text>
+<line x1="474" y1="130" x2="536" y2="130" class="line" marker-end="url(#arr-192)"/>
+<rect x="540" y="100" width="260" height="60" rx="8" class="box"/>
+<text x="670" y="138" text-anchor="middle">재검 또는 폐기</text>
+<rect x="840" y="106" width="120" height="48" rx="24" class="box-gray"/>
+<text x="900" y="138" text-anchor="middle" class="t-head">과검</text>
+</svg><figcaption>두 실수는 결과가 다른 곳으로 간다</figcaption></figure><div class="callout"><p>대부분의 현장은 미검을 더 무겁게 본다. 그래서 과검을 어느 정도 감수하는 쪽으로 기준을 정한다.</p></div></div><div class="notes"><p><strong>설명</strong> 검사기가 틀리는 방식은 두 가지입니다. 불량을 놓치는 미검(Under-kill, 놓침)과 정상을 불량으로 잡는 과검(Over-kill, 오탐)입니다. 공항 보안 검색에 비유하면, 위험물을 놓치는 것이 미검이고 무해한 물건 때문에 가방을 다시 여는 것이 과검입니다. 보안 검색은 가방을 자주 다시 여는 불편을 감수하고 놓침을 줄이는 쪽을 택하는데, 제조 검사도 대개 비슷합니다.</p><p><strong>예상 질문</strong> Q: 두 실수를 모두 0으로 만들 수는 없나요? A: 정상과 불량이 아주 비슷한 경우가 있어서 보통 한쪽을 줄이면 다른 쪽이 늘어납니다. 어느 쪽을 얼마나 허용할지는 기술이 아니라 품질 담당자와 함께 정하는 결정입니다.</p><p><strong>주의</strong> 용어가 회사마다 다릅니다. 미검/과검, 놓침/오탐, Under-kill/Over-kill, False Negative/False Positive가 같은 개념을 가리킨다는 것을 정리해 주세요. 여기서는 "불량"을 Positive(찾아야 할 대상)로 봅니다.</p></div></section>
+<section class="slide layout-stack" id="s7"><h2>촬영 조건 표준화가 먼저다</h2><div class="body"><div class="cards cols-4"><div class="card"><div class="card-t">조명</div><div class="card-d">같은 밝기와 방향, 외부 빛 차단</div></div><div class="card"><div class="card-t">위치</div><div class="card-d">지그(Jig)로 제품 위치를 고정</div></div><div class="card"><div class="card-t">카메라</div><div class="card-d">거리, 초점, 노출을 고정</div></div><div class="card"><div class="card-t">배경</div><div class="card-d">단순하고 일정하게</div></div></div><figure class="diagram"><svg class="dg" role="img" aria-label="카메라, 조명, 고정 지그를 일정하게 맞춘 촬영 환경" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 262"><defs><marker id="arr-193" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="arrhead"/></marker><marker id="arr-acc-193" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="arrhead-acc"/></marker></defs>
+<g transform="translate(190 0)">
+<rect x="110" y="4" width="500" height="250" rx="12" class="box-dash"/>
+<text x="360" y="245" text-anchor="middle" class="t-s t-muted">외부 빛 차단</text>
+<rect x="300" y="20" width="120" height="50" rx="8" class="box-head"/>
+<text x="360" y="53" text-anchor="middle" class="t-on">카메라</text>
+<line x1="360" y1="70" x2="360" y2="165" class="line" marker-end="url(#arr-193)" stroke-dasharray="6 5"/>
+<rect x="150" y="90" width="100" height="40" rx="6" class="box-warn"/>
+<text x="200" y="117" text-anchor="middle">조명</text>
+<rect x="470" y="90" width="100" height="40" rx="6" class="box-warn"/>
+<text x="520" y="117" text-anchor="middle">조명</text>
+<line x1="250" y1="125" x2="300" y2="165" class="line-warn"/>
+<line x1="470" y1="125" x2="420" y2="165" class="line-warn"/>
+<rect x="300" y="168" width="120" height="34" rx="4" class="box-gray"/>
+<text x="360" y="192" text-anchor="middle" class="t-s">제품</text>
+<rect x="250" y="202" width="220" height="24" rx="4" class="box-soft"/>
+<text x="500" y="221" text-anchor="start" class="t-s">지그</text>
+</g>
+</svg><figcaption>카메라, 조명, 고정 지그를 일정하게 맞춘 촬영 환경</figcaption></figure></div><div class="notes"><p><strong>설명</strong> 비전 검사의 성패는 모델보다 촬영 조건에서 먼저 갈립니다. 조명이 매번 다르거나 제품 위치가 흔들리면, 규칙 기반이든 딥러닝이든 그 변화를 불량으로 착각하기 쉽습니다. 증명사진을 찍을 때 조명, 배경, 자세를 고정하는 이유와 같습니다. 같은 조건에서 찍으면 차이가 생겼을 때 그 차이가 제품 때문이라고 믿을 수 있습니다.</p><p><strong>예상 질문</strong> Q: 조명은 어떻게 고르나요? A: 불량의 종류에 따라 다릅니다. 표면 긁힘은 비스듬한 조명에서 잘 보이고, 윤곽 검사는 제품 뒤쪽에서 비추는 백라이트(Backlight)가 유리한 경우가 많습니다. 조명 선택은 현장 장비 담당자와 함께 시험해 보며 정하는 것이 보통입니다.</p><p><strong>주의</strong> 학습할 때와 운영할 때의 촬영 조건이 달라지면 성능이 떨어집니다. 카메라나 조명을 교체하면 데이터를 다시 확인해야 한다는 점을 꼭 말해 주세요.</p></div></section>
+<section class="slide layout-section" id="s8"><h2>규칙 기반 검사</h2><div class="body"></div><div class="notes"><p>정상 기준 이미지와 비교하는 전통적인 방법을 다룹니다. 이진화, 모폴로지, 템플릿 매칭 같은 OpenCV 기본기가 그대로 쓰입니다. 딥러닝 이상 탐지도 "정상과 비교한다"는 같은 발상에서 출발하므로 이 장이 기초가 됩니다.</p></div></section>
+<section class="slide layout-stack" id="s9"><h2>기준 이미지(Golden Template) 비교</h2><div class="body"><ul><li>확실한 정상품 이미지 한 장(또는 여러 장의 평균)을 <strong>기준</strong>으로 정한다</li><li>검사 이미지와 기준을 픽셀 단위로 비교한다</li><li>차이가 큰 곳이 불량 후보가 된다</li></ul><figure class="diagram"><svg class="dg" role="img" aria-label="기준과 검사 이미지의 차이에서 불량 후보를 찾는다" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 225"><defs><marker id="arr-194" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="arrhead"/></marker><marker id="arr-acc-194" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="arrhead-acc"/></marker></defs>
+<rect x="20" y="20" width="200" height="160" rx="8" class="box"/>
+<rect x="45" y="45" width="150" height="110" rx="6" class="box-soft"/>
+<circle cx="90" cy="100" r="22" class="box-gray"/>
+<rect x="130" y="75" width="50" height="50" rx="4" class="box-gray"/>
+<text x="120" y="210" text-anchor="middle" class="t-head">기준 (정상)</text>
+<text x="250" y="108" text-anchor="middle" class="t-l">−</text>
+<rect x="290" y="20" width="200" height="160" rx="8" class="box"/>
+<rect x="315" y="45" width="150" height="110" rx="6" class="box-soft"/>
+<circle cx="360" cy="100" r="22" class="box-gray"/>
+<rect x="400" y="75" width="50" height="50" rx="4" class="box-gray"/>
+<line x1="410" y1="138" x2="450" y2="120" class="line-warn" stroke-width="6"/>
+<text x="390" y="210" text-anchor="middle" class="t-head">검사 이미지</text>
+<text x="520" y="108" text-anchor="middle" class="t-l">=</text>
+<rect x="560" y="20" width="200" height="160" rx="8" class="box-dark"/>
+<line x1="680" y1="138" x2="720" y2="120" class="line-warn" stroke-width="6"/>
+<text x="660" y="210" text-anchor="middle" class="t-head">차영상</text>
+<line x1="780" y1="100" x2="850" y2="100" class="line" marker-end="url(#arr-194)"/>
+<rect x="870" y="20" width="200" height="160" rx="8" class="box"/>
+<circle cx="970" cy="100" r="36" class="box-warn op"/>
+<text x="970" y="108" text-anchor="middle" class="t-s">후보</text>
+<text x="970" y="210" text-anchor="middle" class="t-head">불량 후보</text>
+</svg><figcaption>기준과 검사 이미지의 차이에서 불량 후보를 찾는다</figcaption></figure></div><div class="notes"><p><strong>설명</strong> 골든 템플릿(Golden Template)은 "모범 정상품" 사진입니다. 틀린 그림 찾기처럼 두 사진을 겹쳐 보고 다른 곳을 찾는 방식입니다. 정상품 여러 장을 평균하면 우연한 잡음이 줄어든 기준을 만들 수 있습니다. 인쇄물, 기판(PCB), 라벨처럼 모양이 매번 같은 제품에서 특히 잘 동작합니다.</p><p><strong>예상 질문</strong> Q: 기준 이미지 한 장으로 충분한가요? A: 제품이 아주 균일하면 가능하지만, 보통은 정상품 여러 장으로 평균과 허용 범위(픽셀별 표준편차 등)를 함께 만드는 편이 안정적입니다.</p><p><strong>주의</strong> 기준 이미지 자체에 작은 흠이 있으면 그 흠이 모든 검사에 영향을 줍니다. 기준은 사람이 꼼꼼히 확인한 이미지로 정해야 합니다.</p></div></section>
+<section class="slide layout-stack" id="s10"><h2>정렬: 먼저 위치를 맞춘다</h2><div class="body"><ul><li>위치가 몇 픽셀만 어긋나도 윤곽 전체가 차이로 나온다</li><li>정렬(Alignment, Registration) 방법:<ul><li>템플릿 매칭으로 이동량 찾기 (<code>cv2.matchTemplate</code>)</li><li>특징점 매칭 + 변환 행렬 (<code>cv2.findHomography</code>)</li></ul></li></ul><figure class="diagram"><svg class="dg" role="img" aria-label="정렬하지 않으면 윤곽이 모두 차이로 나온다" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 250"><defs><marker id="arr-195" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="arrhead"/></marker><marker id="arr-acc-195" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="arrhead-acc"/></marker></defs>
+<text x="270" y="26" text-anchor="middle" class="t-head">정렬 전</text>
+<rect x="20" y="40" width="200" height="160" rx="8" class="box"/>
+<rect x="60" y="70" width="110" height="100" rx="6" class="box-gray op"/>
+<rect x="72" y="82" width="110" height="100" rx="6" class="box-acc op"/>
+<line x1="240" y1="120" x2="300" y2="120" class="line" marker-end="url(#arr-195)"/>
+<rect x="320" y="40" width="200" height="160" rx="8" class="box-dark"/>
+<rect x="360" y="70" width="110" height="100" rx="6" class="box-dash" style="fill:none"/>
+<rect x="372" y="82" width="110" height="100" rx="6" class="box-dash" style="fill:none"/>
+<line x1="430" y1="140" x2="460" y2="125" class="line-warn" stroke-width="6"/>
+<text x="270" y="238" text-anchor="middle" class="t-s t-muted">윤곽 전체가 차이로 나온다</text>
+<text x="830" y="26" text-anchor="middle" class="t-head">정렬 후</text>
+<rect x="580" y="40" width="200" height="160" rx="8" class="box"/>
+<rect x="620" y="70" width="110" height="100" rx="6" class="box-gray op"/>
+<rect x="620" y="70" width="110" height="100" rx="6" class="box-acc op"/>
+<line x1="800" y1="120" x2="860" y2="120" class="line" marker-end="url(#arr-195)"/>
+<rect x="880" y="40" width="200" height="160" rx="8" class="box-dark"/>
+<line x1="990" y1="140" x2="1020" y2="125" class="line-warn" stroke-width="6"/>
+<text x="830" y="238" text-anchor="middle" class="t-s t-muted">불량만 남는다</text>
+</svg><figcaption>정렬하지 않으면 윤곽이 모두 차이로 나온다</figcaption></figure></div><div class="notes"><p><strong>설명</strong> 두 장의 사진을 비교하려면 먼저 같은 자리에 겹쳐야 합니다. 투명 필름 두 장을 겹쳐 비교할 때 한쪽이 조금만 밀려도 모든 선이 두 줄로 보이는 것과 같습니다. 이동만 있다면 템플릿 매칭으로 어긋난 거리를 찾으면 되고, 회전이나 기울어짐까지 있다면 특징점 매칭으로 변환 행렬을 구해 이미지를 바로 세웁니다(<code>cv2.warpPerspective</code> 또는 <code>cv2.warpAffine</code>).</p><p><strong>예상 질문</strong> Q: 지그로 고정했는데도 정렬이 필요한가요? A: 대부분 필요합니다. 지그가 있어도 컨베이어 진동이나 제품 공차 때문에 몇 픽셀은 흔들립니다. 정렬은 그 잔여 오차를 없애는 단계입니다.</p><p><strong>주의</strong> 정렬이 실패하면 정상품도 불량으로 판정됩니다. 정렬 결과(매칭 점수)가 낮으면 판정을 보류하는 규칙을 두면 안전합니다.</p></div></section>
+<section class="slide layout-stack" id="s11"><h2>차영상에서 판정까지</h2><div class="body"><div class="steps"><div class="step"><div class="step-n">1</div><div class="step-t">차영상</div><div class="step-d">기준과 검사 이미지의 절댓값 차이 (<code>cv2.absdiff</code>)</div></div><div class="step"><div class="step-n">2</div><div class="step-t">이진화</div><div class="step-d">차이가 임계값보다 큰 픽셀만 남김</div></div><div class="step"><div class="step-n">3</div><div class="step-t">모폴로지</div><div class="step-d">열기(Opening)로 작은 잡음 제거</div></div><div class="step"><div class="step-n">4</div><div class="step-t">덩어리 찾기</div><div class="step-d">연결 요소(Connected Components)와 면적</div></div><div class="step"><div class="step-n">5</div><div class="step-t">판정</div><div class="step-d">면적이 기준보다 큰 덩어리가 있으면 불량</div></div></div><figure class="diagram"><svg class="dg" role="img" aria-label="면적 기준보다 큰 덩어리만 불량으로 본다" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 235"><defs><marker id="arr-196" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="arrhead"/></marker><marker id="arr-acc-196" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="arrhead-acc"/></marker></defs>
+<rect x="20" y="20" width="680" height="170" rx="8" class="box-dark"/>
+<circle cx="100" cy="105" r="6" class="box-gray"/>
+<circle cx="230" cy="105" r="12" class="box-gray"/>
+<circle cx="390" cy="105" r="22" class="box-warn"/>
+<circle cx="570" cy="105" r="44" class="box-warn"/>
+<line x1="310" y1="10" x2="310" y2="200" class="line-acc" stroke-dasharray="8 6"/>
+<text x="310" y="226" text-anchor="middle" class="t-s t-acc">면적 기준</text>
+<rect x="760" y="50" width="30" height="30" rx="4" class="box-gray"/>
+<text x="805" y="73" text-anchor="start">기준보다 작다 → 무시</text>
+<rect x="760" y="120" width="30" height="30" rx="4" class="box-warn"/>
+<text x="805" y="143" text-anchor="start">기준보다 크다 → 불량</text>
+</svg><figcaption>면적 기준보다 큰 덩어리만 불량으로 본다</figcaption></figure></div><div class="notes"><p><strong>설명</strong> 차영상(Difference Image)은 두 이미지의 픽셀 값을 빼서 절댓값을 취한 것으로, 같은 곳은 0에 가깝고 다른 곳은 밝게 나옵니다. 여기에 이진화를 하면 "다른 곳"만 흰색으로 남고, 모폴로지 열기로 점처럼 작은 잡음을 지웁니다. 남은 흰 덩어리마다 면적을 재서(<code>cv2.connectedComponentsWithStats</code>) 기준보다 큰 것이 있으면 불량으로 판정합니다. 이진화, 모폴로지, 라벨링을 순서대로 이어 붙인 것이라고 설명하면 됩니다.</p><p><strong>예상 질문</strong> Q: 면적 기준은 어떻게 정하나요? A: 품질 규격(예: 몇 mm 이상의 흠은 불량)을 픽셀 크기로 환산해 정합니다. 카메라 해상도에서 1픽셀이 몇 mm인지 알아야 하므로 현장에서 기준 물체로 측정합니다.</p><p><strong>주의</strong> 차영상 전에 가우시안 블러(<code>cv2.GaussianBlur</code>)로 두 이미지를 살짝 흐리게 하면 카메라 잡음에 의한 과검이 줄어듭니다. 대신 너무 흐리게 하면 작은 불량도 사라집니다.</p></div></section>
+<section class="slide layout-stack" id="s12"><h2>규칙 기반 검사의 한계</h2><div class="body"><div class="cards cols-3"><div class="card"><div class="card-t">조명 변화</div><div class="card-d">전체 밝기가 바뀌면 차이가 화면 전체에 생긴다</div></div><div class="card"><div class="card-t">위치 어긋남</div><div class="card-d">정렬이 조금만 틀려도 윤곽이 불량 후보가 된다</div></div><div class="card"><div class="card-t">정상 편차</div><div class="card-d">나뭇결, 직물, 주물처럼 정상끼리도 무늬가 다르다</div></div></div><div class="callout warn"><p>"정상은 모두 똑같이 생겼다"는 가정에 기댄다. 인쇄물, 기판처럼 일정한 제품에는 잘 맞고, 천, 목재처럼 무늬가 매번 다른 제품에는 어렵다.</p></div><figure class="diagram"><svg class="dg" role="img" aria-label="정상품인데도 차영상에 차이가 생기는 세 가지 경우" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 235"><defs><marker id="arr-197" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="arrhead"/></marker><marker id="arr-acc-197" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="arrhead-acc"/></marker></defs>
+<text x="190" y="26" text-anchor="middle" class="t-head">조명 변화</text>
+<rect x="80" y="40" width="220" height="150" rx="8" class="box-dark"/>
+<rect x="90" y="50" width="200" height="130" rx="6" class="box-gray op"/>
+<text x="190" y="222" text-anchor="middle" class="t-s t-muted">화면 전체가 차이로</text>
+<text x="550" y="26" text-anchor="middle" class="t-head">위치 어긋남</text>
+<rect x="440" y="40" width="220" height="150" rx="8" class="box-dark"/>
+<rect x="490" y="70" width="110" height="90" rx="6" class="box-dash" style="fill:none"/>
+<rect x="500" y="80" width="110" height="90" rx="6" class="box-dash" style="fill:none"/>
+<text x="550" y="222" text-anchor="middle" class="t-s t-muted">윤곽이 차이로</text>
+<text x="910" y="26" text-anchor="middle" class="t-head">정상 편차</text>
+<rect x="800" y="40" width="220" height="150" rx="8" class="box-dark"/>
+<path d="M810 62 q50 -14 100 0 t100 0" class="line-warn" fill="none"/>
+<path d="M810 88 q50 -14 100 0 t100 0" class="line-warn" fill="none"/>
+<path d="M810 114 q50 -14 100 0 t100 0" class="line-warn" fill="none"/>
+<path d="M810 140 q50 -14 100 0 t100 0" class="line-warn" fill="none"/>
+<path d="M810 166 q50 -14 100 0 t100 0" class="line-warn" fill="none"/>
+<text x="910" y="222" text-anchor="middle" class="t-s t-muted">무늬가 차이로</text>
+</svg><figcaption>정상품인데도 차영상에 차이가 생기는 세 가지 경우</figcaption></figure></div><div class="notes"><p><strong>설명</strong> 규칙 기반 검사는 빠르고, 왜 불량으로 판정했는지 설명하기 쉽고, 학습 데이터도 거의 필요 없다는 장점이 있습니다. 하지만 "정상은 모두 똑같다"는 가정이 깨지면 약해집니다. 나뭇결처럼 정상품끼리도 무늬가 다른 제품은 기준 이미지 한 장과 비교하는 것 자체가 의미가 없습니다. 이 한계 때문에 정상의 다양한 모습을 데이터로 배우는 딥러닝 이상 탐지가 등장했습니다.</p><p><strong>예상 질문</strong> Q: 그러면 규칙 기반은 이제 안 쓰나요? A: 여전히 많이 씁니다. 제품이 균일하고 속도와 설명 가능성이 중요하면 규칙 기반이 더 적합할 수 있습니다. 딥러닝 결과를 규칙(면적, 위치)으로 한 번 더 거르는 식으로 함께 쓰기도 합니다.</p></div></section>
+<section class="slide layout-stack" id="s13"><h2>실습: 규칙 기반 불량 검사 (Colab)</h2><div class="body"><p><a href="#colab-pending-cv8_01_anomaly_classic" class="colab pending" title="실습 노트북 준비 중 (Drive 업로드 전)">Colab 열기 (준비 중)</a></p><div class="cards cols-4"><div class="card"><div class="card-t">기준 이미지</div><div class="card-d">정상품을 기준으로 정하기</div></div><div class="card"><div class="card-t">정렬</div><div class="card-d">검사 이미지를 기준에 맞추기</div></div><div class="card"><div class="card-t">차영상과 후처리</div><div class="card-d">이진화, 모폴로지</div></div><div class="card"><div class="card-t">판정과 한계</div><div class="card-d">면적 기준, 조명·위치 변화 실험</div></div></div><div class="steps"><div class="step"><div class="step-n">1</div><div class="step-t">준비</div><div class="step-d">정상·불량 이미지</div></div><div class="step"><div class="step-n">2</div><div class="step-t">정렬</div><div class="step-d">기준에 맞춤</div></div><div class="step"><div class="step-n">3</div><div class="step-t">차영상</div><div class="step-d">불량 후보</div></div><div class="step"><div class="step-n">4</div><div class="step-t">판정</div><div class="step-d">면적·개수 기준</div></div></div></div><div class="notes"><p><strong>설명</strong> 정상 기준 이미지와 비교하는 방법으로 불량 영역을 찾고, 그 한계를 직접 확인하는 실습입니다. 수강생이 관찰할 것은 세 가지입니다. 정렬 전과 후에 차영상이 얼마나 다른지, 이진화 임계값과 면적 기준을 바꾸면 미검과 과검이 어떻게 바뀌는지, 밝기를 바꾸거나 이미지를 조금 옮기면 정상품이 어떻게 불량으로 판정되는지입니다.</p><p><strong>실행 팁</strong> 이 실습은 CPU 런타임으로 충분합니다. 첫 셀에서 이미지를 내려받은 뒤 파일 경로가 맞는지 확인하고 진행하세요. 임계값을 여러 값으로 바꿔 보며 결과를 표로 비교하게 하면 이해가 빠릅니다.</p><p><strong>주의</strong> 임계값을 시험 이미지 몇 장에 딱 맞추면 다른 이미지에서는 틀리기 쉽습니다. 정한 기준을 처음 보는 이미지에도 적용해 보게 하세요.</p></div></section>
+<section class="slide layout-section" id="s14"><h2>딥러닝 이상 탐지</h2><div class="body"></div><div class="notes"><p>정상 이미지만으로 학습하는 딥러닝 이상 탐지의 대표적인 세 갈래와, 결과를 읽는 방법(이상 점수와 이상 맵), 공개 데이터셋과 라이브러리를 다룹니다. 수식보다 각 방법이 "정상을 어떻게 기억하는가"에 집중해 설명하면 됩니다.</p></div></section>
+<section class="slide layout-stack" id="s15"><h2>딥러닝 이상 탐지의 세 갈래</h2><div class="body"><div class="cards cols-3"><div class="card"><div class="card-t"><span class="card-n">1</span>재구성 기반 (Reconstruction)</div><div class="card-d">정상을 다시 그려 보고, 잘 안 그려지는 곳을 이상으로 본다</div></div><div class="card"><div class="card-t"><span class="card-n">2</span>특징 임베딩 기반 (Feature Embedding)</div><div class="card-d">사전학습 Backbone 특징으로 정상을 기억하고 거리를 잰다</div></div><div class="card"><div class="card-t"><span class="card-n">3</span>지식 증류 기반 (Knowledge Distillation)</div><div class="card-d">정상에서만 선생을 흉내 낸 학생의 오차를 본다</div></div></div><figure class="diagram"><svg class="dg" role="img" aria-label="세 방법 모두 정상만으로 학습하고 이상 점수를 낸다" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 260"><defs><marker id="arr-198" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="arrhead"/></marker><marker id="arr-acc-198" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="arrhead-acc"/></marker></defs>
+<rect x="20" y="0" width="330" height="46" rx="8" class="box-head"/>
+<text x="185" y="31" text-anchor="middle" class="t-on">재구성</text>
+<rect x="35" y="66" width="300" height="46" rx="8" class="box"/>
+<text x="185" y="97" text-anchor="middle">인코더·디코더</text>
+<line x1="185" y1="112" x2="185" y2="136" class="line" marker-end="url(#arr-198)"/>
+<rect x="35" y="138" width="300" height="46" rx="8" class="box"/>
+<text x="185" y="169" text-anchor="middle">복원 이미지</text>
+<line x1="185" y1="184" x2="185" y2="208" class="line" marker-end="url(#arr-198)"/>
+<rect x="35" y="210" width="300" height="46" rx="8" class="box-acc"/>
+<text x="185" y="241" text-anchor="middle" class="t-on">입력과의 차이</text>
+<rect x="385" y="0" width="330" height="46" rx="8" class="box-head"/>
+<text x="550" y="31" text-anchor="middle" class="t-on">특징 임베딩</text>
+<rect x="400" y="66" width="300" height="46" rx="8" class="box"/>
+<text x="550" y="97" text-anchor="middle">사전학습 Backbone</text>
+<line x1="550" y1="112" x2="550" y2="136" class="line" marker-end="url(#arr-198)"/>
+<rect x="400" y="138" width="300" height="46" rx="8" class="box"/>
+<text x="550" y="169" text-anchor="middle">패치 특징</text>
+<line x1="550" y1="184" x2="550" y2="208" class="line" marker-end="url(#arr-198)"/>
+<rect x="400" y="210" width="300" height="46" rx="8" class="box-acc"/>
+<text x="550" y="241" text-anchor="middle" class="t-on">정상 특징과의 거리</text>
+<rect x="750" y="0" width="330" height="46" rx="8" class="box-head"/>
+<text x="915" y="31" text-anchor="middle" class="t-on">지식 증류</text>
+<rect x="765" y="66" width="300" height="46" rx="8" class="box"/>
+<text x="915" y="97" text-anchor="middle">Teacher와 Student</text>
+<line x1="915" y1="112" x2="915" y2="136" class="line" marker-end="url(#arr-198)"/>
+<rect x="765" y="138" width="300" height="46" rx="8" class="box"/>
+<text x="915" y="169" text-anchor="middle">두 네트워크의 특징</text>
+<line x1="915" y1="184" x2="915" y2="208" class="line" marker-end="url(#arr-198)"/>
+<rect x="765" y="210" width="300" height="46" rx="8" class="box-acc"/>
+<text x="915" y="241" text-anchor="middle" class="t-on">두 특징의 차이</text>
+</svg><figcaption>세 방법 모두 정상만으로 학습하고 이상 점수를 낸다</figcaption></figure></div><div class="notes"><p><strong>설명</strong> 딥러닝 이상 탐지 방법은 많지만, 정상을 기억하는 방식에 따라 크게 세 갈래로 나눌 수 있습니다. 재구성 기반은 정상을 다시 그리는 능력을, 특징 임베딩 기반은 정상의 특징 목록을, 지식 증류 기반은 정상에서만 맞춰 둔 두 네트워크의 일치를 이용합니다. 세 방법 모두 학습에는 정상만 쓰고, 결과로 이상 점수와 이상 맵을 낸다는 점이 같습니다.</p><p><strong>예상 질문</strong> Q: 어떤 갈래가 가장 많이 쓰이나요? A: 공개 벤치마크에서는 사전학습 특징을 쓰는 방법들이 좋은 결과를 보여 널리 쓰입니다. 다만 제품마다 결과가 다르므로 여러 방법을 같은 데이터로 비교해 보는 것이 안전합니다.</p><p><strong>주의</strong> 이 분류는 이해를 돕기 위한 큰 묶음입니다. 실제 논문에는 여러 갈래를 섞은 방법도 많습니다.</p></div></section>
+<section class="slide layout-stack" id="s16"><h2>재구성 기반: Autoencoder</h2><div class="body"><ul><li>인코더(Encoder)가 이미지를 작게 압축하고, 디코더(Decoder)가 다시 복원한다</li><li>정상만으로 학습하면 정상은 잘 복원하고, 처음 보는 이상은 잘 복원하지 못한다</li><li><strong>복원 오차</strong> = | 입력 - 복원 | → 크면 이상</li></ul><figure class="diagram"><svg class="dg" role="img" aria-label="이상 부분은 복원되지 않아 오차 맵에 밝게 남는다" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 205"><defs><marker id="arr-199" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="arrhead"/></marker><marker id="arr-acc-199" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="arrhead-acc"/></marker></defs>
+<rect x="20" y="30" width="150" height="120" rx="10" class="box-gray"/>
+<line x1="113.0" y1="66.0" x2="140.0" y2="96.0" class="line-warn" stroke-width="5"/>
+<text x="95" y="190" text-anchor="middle">입력</text>
+<line x1="178" y1="90" x2="205" y2="90" class="line" marker-end="url(#arr-199)"/>
+<polygon points="210,25 340,65 340,115 210,155" class="box-soft"/>
+<text x="268" y="97" text-anchor="middle" class="t-s">인코더</text>
+<rect x="348" y="65" width="44" height="50" rx="4" class="box-head"/>
+<text x="370" y="190" text-anchor="middle">압축</text>
+<polygon points="400,65 530,25 530,155 400,115" class="box-soft"/>
+<text x="472" y="97" text-anchor="middle" class="t-s">디코더</text>
+<text x="270" y="190" text-anchor="middle" class="t-s t-muted">Encoder</text>
+<text x="470" y="190" text-anchor="middle" class="t-s t-muted">Decoder</text>
+<line x1="535" y1="90" x2="562" y2="90" class="line" marker-end="url(#arr-199)"/>
+<rect x="570" y="30" width="150" height="120" rx="10" class="box-gray"/>
+<text x="645" y="190" text-anchor="middle" class="t-s">복원 (흠이 사라짐)</text>
+<line x1="730" y1="90" x2="860" y2="90" class="line" marker-end="url(#arr-199)"/>
+<text x="795" y="72" text-anchor="middle" class="t-s t-acc">|입력 − 복원|</text>
+<rect x="870" y="30" width="150" height="120" rx="8" class="box-dark"/>
+<line x1="963" y1="66" x2="990" y2="96" class="line-warn" stroke-width="6"/>
+<text x="945" y="190" text-anchor="middle">오차 맵</text>
+</svg><figcaption>이상 부분은 복원되지 않아 오차 맵에 밝게 남는다</figcaption></figure><div class="callout warn"><p>모델이 너무 잘 복원하면 불량까지 복원해 버린다. 반대로 복원이 흐리면 정상의 윤곽도 오차로 나온다.</p></div></div><div class="notes"><p><strong>설명</strong> 오토인코더(Autoencoder)는 이미지를 좁은 통로(Bottleneck)로 압축했다가 다시 펼쳐 원래 이미지를 그리도록 학습합니다. 정상 이미지만 보고 학습했으므로, 정상 무늬는 잘 그리지만 긁힘처럼 본 적 없는 것은 정상처럼 바꿔서 그립니다. 그래서 입력과 복원 결과를 빼면 불량 위치가 밝게 남습니다. 정상품만 보고 그림을 배운 화가에게 흠 있는 제품을 보여 주면 흠 없이 그려 버리는 것에 비유할 수 있습니다.</p><p><strong>예상 질문</strong> Q: 복원 오차는 어떻게 계산하나요? A: 가장 단순하게는 픽셀마다 차이의 제곱(MSE)이나 절댓값을 씁니다. 밝기 차이보다 구조 차이를 보려고 SSIM 같은 지표를 쓰기도 합니다.</p><p><strong>주의</strong> 재구성 기반은 원리가 직관적이지만, 오토인코더가 불량까지 그럴듯하게 복원하는 경우가 알려져 있습니다. 이 한계 때문에 특징 임베딩 기반 방법이 함께 연구되었습니다.</p></div></section>
+<section class="slide layout-stack" id="s17"><h2>특징 임베딩 기반: 사전학습 Backbone의 특징</h2><div class="body"><ul><li>ImageNet으로 사전학습한 Backbone(예: ResNet, Wide ResNet)을 <strong>학습 없이</strong> 그대로 쓴다</li><li>중간 층의 특징 맵에서 위치(패치)마다 특징 벡터를 얻는다</li><li>정상 패치 특징을 모아 두고, 검사 패치가 얼마나 다른지 거리로 잰다</li></ul><figure class="diagram"><svg class="dg" role="img" aria-label="특징 맵의 한 칸이 이미지의 한 패치를 대표한다" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 272"><defs><marker id="arr-200" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="arrhead"/></marker><marker id="arr-acc-200" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="arrhead-acc"/></marker></defs>
+<rect x="20" y="20" width="200" height="200" rx="6" class="box-soft"/>
+<line x1="70" y1="20" x2="70" y2="220" class="line-grid"/>
+<line x1="20" y1="70" x2="220" y2="70" class="line-grid"/>
+<line x1="120" y1="20" x2="120" y2="220" class="line-grid"/>
+<line x1="20" y1="120" x2="220" y2="120" class="line-grid"/>
+<line x1="170" y1="20" x2="170" y2="220" class="line-grid"/>
+<line x1="20" y1="170" x2="220" y2="170" class="line-grid"/>
+<rect x="120" y="70" width="50" height="50" rx="0" class="box-acc op"/>
+<text x="120" y="252" text-anchor="middle" class="t-head">이미지 패치</text>
+<line x1="230" y1="120" x2="290" y2="120" class="line" marker-end="url(#arr-200)"/>
+<rect x="300" y="80" width="220" height="80" rx="8" class="box-head"/>
+<text x="410" y="128" text-anchor="middle" class="t-on">Backbone (고정)</text>
+<text x="410" y="252" text-anchor="middle" class="t-head">사전학습 Backbone</text>
+<line x1="530" y1="120" x2="590" y2="120" class="line" marker-end="url(#arr-200)"/>
+<rect x="642" y="40" width="160" height="160" rx="4" class="box"/>
+<rect x="628" y="50" width="160" height="160" rx="4" class="box"/>
+<rect x="614" y="60" width="160" height="160" rx="4" class="box"/>
+<rect x="600" y="70" width="160" height="160" rx="4" class="box-soft"/>
+<line x1="640" y1="70" x2="640" y2="230" class="line-grid"/>
+<line x1="600" y1="110" x2="760" y2="110" class="line-grid"/>
+<line x1="680" y1="70" x2="680" y2="230" class="line-grid"/>
+<line x1="600" y1="150" x2="760" y2="150" class="line-grid"/>
+<line x1="720" y1="70" x2="720" y2="230" class="line-grid"/>
+<line x1="600" y1="190" x2="760" y2="190" class="line-grid"/>
+<rect x="680" y="110" width="40" height="40" rx="0" class="box-acc op"/>
+<text x="690" y="262" text-anchor="middle" class="t-head">특징 맵</text>
+<line x1="800" y1="130" x2="880" y2="130" class="line" marker-end="url(#arr-200)"/>
+<rect x="900" y="30" width="40" height="30" rx="3" class="box-acc"/>
+<rect x="900" y="64" width="40" height="30" rx="3" class="box-soft"/>
+<rect x="900" y="98" width="40" height="30" rx="3" class="box-acc"/>
+<rect x="900" y="132" width="40" height="30" rx="3" class="box-soft"/>
+<rect x="900" y="166" width="40" height="30" rx="3" class="box-acc"/>
+<rect x="900" y="200" width="40" height="30" rx="3" class="box-soft"/>
+<text x="960" y="262" text-anchor="middle" class="t-head">패치 특징</text>
+</svg><figcaption>특징 맵의 한 칸이 이미지의 한 패치를 대표한다</figcaption></figure></div><div class="notes"><p><strong>설명</strong> 분류용으로 사전학습한 Backbone은 이미 모서리, 질감, 모양 같은 일반적인 시각 특징을 뽑는 능력이 있습니다. Transfer Learning에서 Backbone을 재사용하는 것과 같은 발상인데, 여기서는 Head도 붙이지 않고 특징만 꺼내 씁니다. 특징 맵의 한 칸은 원본 이미지의 작은 영역(패치)을 요약한 숫자 묶음(벡터)입니다. 정상 패치들의 벡터를 모아 두면, 검사 이미지의 각 패치가 정상 무리에서 얼마나 떨어져 있는지 거리로 잴 수 있습니다.</p><p><strong>예상 질문</strong> Q: 왜 마지막 층이 아니라 중간 층을 쓰나요? A: 마지막 층은 "고양이냐 개냐" 같은 분류에 맞춰져 있고 해상도도 낮습니다. 중간 층은 질감과 작은 모양 정보가 남아 있고 위치 해상도도 높아 작은 흠을 찾기에 유리합니다.</p><p><strong>주의</strong> Backbone을 학습하지 않는다는 것이 이 방법의 핵심입니다. "학습"이라고 부르지만 실제로는 정상 특징을 계산해 저장하는 과정에 가깝습니다.</p></div></section>
+<section class="slide layout-stack" id="s18"><h2>PaDiM: 위치마다 정상의 분포를 기억</h2><div class="body"><ul><li>PaDiM (Defard 외, 2020)</li><li>패치 위치마다 정상 특징의 <strong>평균과 공분산</strong>(가우시안 분포)을 저장한다</li><li>검사 패치와 그 위치 분포 사이의 <strong>마할라노비스 거리</strong>(Mahalanobis Distance)가 이상 점수</li></ul><figure class="diagram"><svg class="dg" role="img" aria-label="같은 위치의 정상 특징 분포에서 멀수록 이상" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 258"><defs><marker id="arr-201" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="arrhead"/></marker><marker id="arr-acc-201" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="arrhead-acc"/></marker></defs>
+<rect x="20" y="30" width="240" height="180" rx="6" class="box-soft"/>
+<line x1="80" y1="30" x2="80" y2="210" class="line-grid"/>
+<line x1="140" y1="30" x2="140" y2="210" class="line-grid"/>
+<line x1="200" y1="30" x2="200" y2="210" class="line-grid"/>
+<line x1="20" y1="90" x2="260" y2="90" class="line-grid"/>
+<line x1="20" y1="150" x2="260" y2="150" class="line-grid"/>
+<rect x="80" y="90" width="60" height="60" rx="0" class="box-acc op"/>
+<text x="140" y="246" text-anchor="middle" class="t-head">패치 위치마다</text>
+<line x1="150" y1="120" x2="380" y2="120" class="line-acc" marker-end="url(#arr-acc-201)"/>
+<ellipse cx="610" cy="125" rx="200" ry="80" transform="rotate(-12 610 125)" class="box-soft"/>
+<circle cx="589" cy="148" r="5" class="box-head"/>
+<circle cx="586" cy="119" r="5" class="box-head"/>
+<circle cx="526" cy="136" r="5" class="box-head"/>
+<circle cx="706" cy="118" r="5" class="box-head"/>
+<circle cx="702" cy="114" r="5" class="box-head"/>
+<circle cx="650" cy="123" r="5" class="box-head"/>
+<circle cx="501" cy="170" r="5" class="box-head"/>
+<circle cx="661" cy="132" r="5" class="box-head"/>
+<circle cx="507" cy="110" r="5" class="box-head"/>
+<circle cx="528" cy="127" r="5" class="box-head"/>
+<circle cx="640" cy="117" r="5" class="box-head"/>
+<circle cx="653" cy="94" r="5" class="box-head"/>
+<circle cx="643" cy="132" r="5" class="box-head"/>
+<circle cx="573" cy="178" r="5" class="box-head"/>
+<circle cx="663" cy="151" r="5" class="box-head"/>
+<circle cx="550" cy="113" r="5" class="box-head"/>
+<circle cx="575" cy="128" r="5" class="box-head"/>
+<circle cx="671" cy="121" r="5" class="box-head"/>
+<circle cx="565" cy="103" r="5" class="box-head"/>
+<circle cx="575" cy="170" r="5" class="box-head"/>
+<circle cx="538" cy="149" r="5" class="box-head"/>
+<circle cx="634" cy="77" r="5" class="box-head"/>
+<circle cx="610" cy="125" r="8" class="box-acc"/>
+<text x="610" y="246" text-anchor="middle" class="t-head">정상 분포 (평균, 공분산)</text>
+<circle cx="960" cy="60" r="13" class="box-warn"/>
+<line x1="625" y1="120" x2="942" y2="64" class="line-acc" marker-end="url(#arr-acc-201)" stroke-dasharray="6 5"/>
+<text x="960" y="105" text-anchor="middle" class="t-s t-head">검사 패치</text>
+<text x="960" y="135" text-anchor="middle" class="t-s t-acc">마할라노비스 거리</text>
+</svg><figcaption>같은 위치의 정상 특징 분포에서 멀수록 이상</figcaption></figure></div><div class="notes"><p><strong>설명</strong> PaDiM(Patch Distribution Modeling)은 이미지를 격자로 나눈 각 위치마다 "정상이면 특징이 이 정도 범위에 있다"는 분포를 저장합니다. 반 학생들의 키 평균과 흩어진 정도를 알면 어떤 학생이 유난히 큰지 판단할 수 있는 것처럼, 위치마다 평균과 흩어짐을 알면 검사 패치가 얼마나 특이한지 알 수 있습니다. 마할라노비스 거리는 흩어진 정도(공분산)를 고려한 거리로, 원래 넓게 퍼지는 방향의 차이는 덜 중요하게 봅니다.</p><p><strong>예상 질문</strong> Q: 위치마다 따로 저장하면 제품 위치가 바뀌면 어떻게 되나요? A: 좋은 질문입니다. PaDiM은 위치별 분포를 쓰므로 제품이 정렬되어 있다는 가정이 강한 편입니다. 촬영 위치 고정과 정렬이 여기서도 중요합니다.</p><p><strong>주의</strong> 공분산 행렬 저장 때문에 특징 차원이 크면 메모리가 많이 듭니다. 논문은 차원을 무작위로 골라 줄이는 방법을 썼습니다. 세부 설정은 라이브러리 버전 확인이 필요합니다.</p></div></section>
+<section class="slide layout-stack" id="s19"><h2>PatchCore: 정상 패치 메모리 뱅크</h2><div class="body"><ul><li>PatchCore (Roth 외, 2021 공개, CVPR 2022)</li><li>모든 정상 이미지의 패치 특징을 <strong>메모리 뱅크</strong>(Memory Bank)에 모은다</li><li>중복이 많은 특징은 대표만 남겨 줄인다 (Coreset 샘플링)</li><li>검사 패치 → 메모리 뱅크에서 <strong>가장 가까운 정상 패치</strong>까지의 거리 = 이상 점수</li></ul><figure class="diagram"><svg class="dg" role="img" aria-label="가장 가까운 정상 패치와도 멀면 이상" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 262"><defs><marker id="arr-202" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="arrhead"/></marker><marker id="arr-acc-202" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="arrhead-acc"/></marker></defs>
+<text x="110" y="26" text-anchor="middle" class="t-head">정상 이미지</text>
+<rect x="40" y="44" width="120" height="90" rx="6" class="box-soft"/>
+<rect x="56" y="60" width="120" height="90" rx="6" class="box-soft"/>
+<rect x="72" y="76" width="120" height="90" rx="6" class="box-soft"/>
+<line x1="210" y1="120" x2="290" y2="120" class="line" marker-end="url(#arr-202)"/>
+<rect x="300" y="20" width="460" height="200" rx="12" class="box-soft"/>
+<rect x="330" y="40" width="30" height="26" rx="3" class="box-gray"/>
+<rect x="376" y="40" width="30" height="26" rx="3" class="box-gray"/>
+<rect x="422" y="40" width="30" height="26" rx="3" class="box-gray"/>
+<rect x="514" y="40" width="30" height="26" rx="3" class="box-gray"/>
+<rect x="606" y="40" width="30" height="26" rx="3" class="box-gray"/>
+<rect x="652" y="40" width="30" height="26" rx="3" class="box-gray"/>
+<rect x="330" y="80" width="30" height="26" rx="3" class="box-gray"/>
+<rect x="422" y="80" width="30" height="26" rx="3" class="box-gray"/>
+<rect x="468" y="80" width="30" height="26" rx="3" class="box-gray"/>
+<rect x="514" y="80" width="30" height="26" rx="3" class="box-gray"/>
+<rect x="560" y="80" width="30" height="26" rx="3" class="box-gray"/>
+<rect x="606" y="80" width="30" height="26" rx="3" class="box-gray"/>
+<rect x="652" y="80" width="30" height="26" rx="3" class="box-gray"/>
+<rect x="698" y="80" width="30" height="26" rx="3" class="box-acc"/>
+<rect x="330" y="120" width="30" height="26" rx="3" class="box-gray"/>
+<rect x="422" y="120" width="30" height="26" rx="3" class="box-gray"/>
+<rect x="468" y="120" width="30" height="26" rx="3" class="box-gray"/>
+<rect x="514" y="120" width="30" height="26" rx="3" class="box-gray"/>
+<rect x="560" y="120" width="30" height="26" rx="3" class="box-gray"/>
+<rect x="606" y="120" width="30" height="26" rx="3" class="box-gray"/>
+<rect x="652" y="120" width="30" height="26" rx="3" class="box-gray"/>
+<rect x="698" y="120" width="30" height="26" rx="3" class="box-gray"/>
+<rect x="376" y="160" width="30" height="26" rx="3" class="box-gray"/>
+<rect x="422" y="160" width="30" height="26" rx="3" class="box-gray"/>
+<rect x="560" y="160" width="30" height="26" rx="3" class="box-gray"/>
+<rect x="652" y="160" width="30" height="26" rx="3" class="box-gray"/>
+<rect x="698" y="160" width="30" height="26" rx="3" class="box-gray"/>
+<text x="530" y="250" text-anchor="middle" class="t-s t-head">메모리 뱅크: 정상 패치 특징 (Coreset으로 대표만)</text>
+<rect x="940" y="90" width="50" height="46" rx="4" class="box-warn"/>
+<text x="965" y="170" text-anchor="middle" class="t-s t-head">검사 패치</text>
+<line x1="936" y1="112" x2="732" y2="93" class="line-acc" marker-end="url(#arr-acc-202)" stroke-dasharray="6 5"/>
+<text x="965" y="60" text-anchor="middle" class="t-s t-acc">최근접 거리</text>
+<text x="965" y="200" text-anchor="middle" class="t-s t-acc">= 이상 점수</text>
+</svg><figcaption>가장 가까운 정상 패치와도 멀면 이상</figcaption></figure></div><div class="notes"><p><strong>설명</strong> PatchCore는 정상 패치의 특징을 위치와 상관없이 하나의 큰 목록(메모리 뱅크)에 모읍니다. 검사할 때는 각 패치마다 목록에서 가장 비슷한 정상 패치를 찾고, 그것과의 거리를 잽니다. 가장 비슷한 정상과도 많이 다르다면 이상입니다. 출입 명단에서 닮은 얼굴을 찾아보고, 가장 닮은 사람과도 다르면 외부인으로 보는 것과 같습니다. 목록이 너무 크면 검색이 느려지므로, 서로 비슷한 특징은 대표만 남기는 코어셋(Coreset) 샘플링으로 줄입니다.</p><p><strong>예상 질문</strong> Q: PaDiM과 무엇이 다른가요? A: PaDiM은 위치마다 분포 하나(평균과 공분산)로 요약하고, PatchCore는 실제 정상 패치 특징을 목록으로 저장하고 최근접 이웃(Nearest Neighbor) 거리를 씁니다. PatchCore는 위치에 덜 묶여 있어 정렬이 조금 어긋나도 비교적 덜 민감합니다.</p><p><strong>주의</strong> 메모리 뱅크를 줄이는 비율(Coreset 비율)은 속도와 정확도를 맞바꾸는 설정입니다. 기본값은 라이브러리 버전 확인이 필요합니다. 학습에 경사 하강법(역전파)을 쓰지 않는다는 점도 짚어 주세요.</p></div></section>
+<section class="slide layout-stack" id="s20"><h2>지식 증류 기반: Student-Teacher</h2><div class="body"><ul><li><strong>Teacher</strong>: 사전학습 네트워크, 고정한다</li><li><strong>Student</strong>: 정상 이미지에서 Teacher의 특징을 똑같이 내도록 학습한다</li><li>정상에서는 둘이 비슷하고, 처음 보는 이상에서는 둘의 출력이 <strong>어긋난다</strong></li><li>이 어긋남(특징 차이)이 이상 점수</li></ul><figure class="diagram"><svg class="dg" role="img" aria-label="정상에서만 흉내를 배운 Student는 이상에서 틀린다" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 240"><defs><marker id="arr-203" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="arrhead"/></marker><marker id="arr-acc-203" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="arrhead-acc"/></marker></defs>
+<rect x="20" y="70" width="150" height="110" rx="10" class="box-gray"/>
+<line x1="113.0" y1="103.0" x2="140.0" y2="130.5" class="line-warn" stroke-width="5"/>
+<text x="95" y="215" text-anchor="middle">입력</text>
+<line x1="175" y1="105" x2="255" y2="55" class="line" marker-end="url(#arr-203)"/>
+<line x1="175" y1="150" x2="255" y2="200" class="line" marker-end="url(#arr-203)"/>
+<rect x="260" y="25" width="260" height="60" rx="8" class="box-head"/>
+<text x="390" y="63" text-anchor="middle" class="t-on">Teacher (고정)</text>
+<rect x="260" y="170" width="260" height="60" rx="8" class="box-soft"/>
+<text x="390" y="208" text-anchor="middle" class="t-s">Student (정상으로 학습)</text>
+<line x1="525" y1="55" x2="600" y2="55" class="line" marker-end="url(#arr-203)"/>
+<line x1="525" y1="200" x2="600" y2="200" class="line" marker-end="url(#arr-203)"/>
+<rect x="605" y="30" width="110" height="50" rx="6" class="box"/>
+<text x="660" y="63" text-anchor="middle" class="t-s">특징</text>
+<rect x="605" y="175" width="110" height="50" rx="6" class="box"/>
+<text x="660" y="208" text-anchor="middle" class="t-s">특징</text>
+<line x1="715" y1="55" x2="785" y2="115" class="line" marker-end="url(#arr-203)"/>
+<line x1="715" y1="200" x2="785" y2="140" class="line" marker-end="url(#arr-203)"/>
+<circle cx="810" cy="128" r="34" class="box-warn"/>
+<text x="810" y="135" text-anchor="middle" class="t-s">차이</text>
+<line x1="846" y1="128" x2="890" y2="128" class="line" marker-end="url(#arr-203)"/>
+<rect x="895" y="98" width="185" height="60" rx="8" class="box-acc"/>
+<text x="987" y="136" text-anchor="middle" class="t-on">이상 점수</text>
+</svg><figcaption>정상에서만 흉내를 배운 Student는 이상에서 틀린다</figcaption></figure></div><div class="notes"><p><strong>설명</strong> 지식 증류(Knowledge Distillation)는 큰 선생 네트워크의 출력을 학생 네트워크가 따라 하도록 학습시키는 기법입니다. 이상 탐지에서는 학생에게 정상 이미지만 보여 주며 선생을 흉내 내게 합니다. 그러면 학생은 정상에서는 선생과 거의 같은 답을 내지만, 본 적 없는 불량 부분에서는 선생과 다른 답을 냅니다. 모범 답안만 외운 학생이 처음 보는 문제에서 선생님과 다른 답을 쓰는 것과 같습니다.</p><p><strong>예상 질문</strong> Q: 대표적인 방법 이름이 있나요? A: Uninformed Students(Bergmann 외, 2020), STFPM 같은 방법이 이 갈래에 속합니다. 이름 정도만 알아 두면 충분합니다.</p><p><strong>주의</strong> 재구성 기반과 헷갈리기 쉽습니다. 재구성 기반은 "이미지를 다시 그린 차이"를 보고, 지식 증류 기반은 "두 네트워크 특징의 차이"를 봅니다.</p></div></section>
+<section class="slide layout-stack" id="s21"><h2>이상 점수와 이상 맵</h2><div class="body"><div class="compare cols-2"><div class="panel"><div class="panel-t">이상 맵 (Anomaly Map)</div><ul><li>픽셀(패치)마다 이상 정도, 히트맵으로 표시</li><li>임계값을 넘는 영역 → 불량 위치 마스크</li></ul></div><div class="panel"><div class="panel-t">이상 점수 (Anomaly Score)</div><ul><li>이미지 한 장에 숫자 하나</li><li>흔히 이상 맵의 최댓값을 쓴다 → 정상/불량 판정</li></ul></div></div><figure class="diagram"><svg class="dg" role="img" aria-label="이상 맵에서 이상 점수와 불량 영역을 얻는다" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 255"><defs><marker id="arr-204" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="arrhead"/></marker><marker id="arr-acc-204" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="arrhead-acc"/></marker></defs>
+<rect x="30" y="50" width="220" height="150" rx="10" class="box-gray"/>
+<line x1="166.4" y1="95.0" x2="206.0" y2="132.5" class="line-warn" stroke-width="5"/>
+<circle cx="180" cy="112" r="56" class="box-warn op"/>
+<circle cx="180" cy="112" r="28" class="box-acc op"/>
+<text x="140" y="240" text-anchor="middle" class="t-head">이상 맵 (히트맵)</text>
+<line x1="270" y1="90" x2="450" y2="60" class="line" marker-end="url(#arr-204)"/>
+<text x="360" y="52" text-anchor="middle" class="t-s t-acc">최댓값</text>
+<line x1="270" y1="170" x2="450" y2="195" class="line" marker-end="url(#arr-204)"/>
+<text x="360" y="220" text-anchor="middle" class="t-s t-acc">임계값 적용</text>
+<rect x="460" y="30" width="230" height="60" rx="8" class="box-acc"/>
+<text x="575" y="68" text-anchor="middle" class="t-on">이상 점수</text>
+<rect x="460" y="160" width="230" height="70" rx="8" class="box-dark"/>
+<circle cx="600" cy="192" r="20" class="box-soft"/>
+<line x1="700" y1="60" x2="790" y2="60" class="line" marker-end="url(#arr-204)"/>
+<line x1="700" y1="195" x2="790" y2="195" class="line" marker-end="url(#arr-204)"/>
+<rect x="800" y="30" width="270" height="60" rx="8" class="box"/>
+<text x="935" y="68" text-anchor="middle">이미지: 정상 / 불량</text>
+<rect x="800" y="165" width="270" height="60" rx="8" class="box"/>
+<text x="935" y="203" text-anchor="middle">픽셀: 불량 위치 마스크</text>
+</svg><figcaption>이상 맵에서 이상 점수와 불량 영역을 얻는다</figcaption></figure></div><div class="notes"><p><strong>설명</strong> 이상 탐지 모델의 출력은 두 가지입니다. 이상 맵은 이미지의 각 위치가 얼마나 이상한지를 나타낸 지도이고, 보통 빨간색일수록 이상한 히트맵으로 겹쳐 보여 줍니다. 이상 점수는 이미지 한 장이 얼마나 이상한지를 나타내는 숫자 하나이고, 이상 맵에서 가장 큰 값을 쓰는 경우가 많습니다. 일기 예보 지도(지역별 강수 확률)와 "오늘 우산이 필요한가"라는 한 가지 결론의 관계로 설명하면 쉽습니다.</p><p><strong>예상 질문</strong> Q: 이상 점수 0.7은 70% 확률로 불량이라는 뜻인가요? A: 아닙니다. 이상 점수는 확률이 아니라 정상에서 떨어진 정도입니다. 라이브러리가 0~1로 정규화해 보여 주더라도, 그 값의 의미는 정한 임계값과 비교해서만 해석할 수 있습니다.</p><p><strong>주의</strong> 이상 맵의 해상도는 특징 맵 크기에 따라 정해지고, 원본 크기로 키워(업샘플링) 보여 줍니다. 그래서 경계가 흐릿하게 보이는 것이 정상입니다.</p></div></section>
+<section class="slide layout-stack" id="s22"><h2>공개 데이터셋: MVTec AD</h2><div class="body"><ul><li>MVTec AD (Bergmann 외, CVPR 2019): 산업용 이상 탐지 벤치마크</li><li>물체(병, 나사, 케이블 등)와 텍스처(카펫, 목재, 가죽 등) 카테고리</li><li><strong>학습 세트는 정상만</strong>, 시험 세트에 정상과 여러 유형의 불량</li><li>불량 이미지마다 픽셀 단위 정답 마스크</li></ul><figure class="diagram"><svg class="dg" role="img" aria-label="카테고리 하나의 폴더 구성" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 260"><defs><marker id="arr-205" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="arrhead"/></marker><marker id="arr-acc-205" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="arrhead-acc"/></marker></defs>
+<rect x="430" y="0" width="240" height="46" rx="8" class="box-head"/>
+<text x="550" y="31" text-anchor="middle" class="t-on t-s">카테고리 (예: bottle)</text>
+<line x1="550" y1="46" x2="190" y2="80" class="line" marker-end="url(#arr-205)"/>
+<rect x="60" y="84" width="260" height="46" rx="8" class="box-soft"/>
+<text x="190" y="115" text-anchor="middle" class="t-code">train/</text>
+<rect x="60" y="150" width="260" height="46" rx="8" class="box"/>
+<text x="190" y="181" text-anchor="middle" class="t-s">good: 정상만</text>
+<line x1="550" y1="46" x2="550" y2="80" class="line" marker-end="url(#arr-205)"/>
+<rect x="420" y="84" width="260" height="46" rx="8" class="box-soft"/>
+<text x="550" y="115" text-anchor="middle" class="t-code">test/</text>
+<rect x="420" y="150" width="260" height="46" rx="8" class="box"/>
+<text x="550" y="181" text-anchor="middle" class="t-s">good: 정상</text>
+<rect x="420" y="208" width="260" height="46" rx="8" class="box-warn"/>
+<text x="550" y="239" text-anchor="middle" class="t-s">불량 유형별 폴더</text>
+<line x1="550" y1="46" x2="910" y2="80" class="line" marker-end="url(#arr-205)"/>
+<rect x="780" y="84" width="260" height="46" rx="8" class="box-soft"/>
+<text x="910" y="115" text-anchor="middle" class="t-code">ground_truth/</text>
+<rect x="780" y="150" width="260" height="46" rx="8" class="box-warn"/>
+<text x="910" y="181" text-anchor="middle" class="t-s">불량 유형별 마스크</text>
+</svg><figcaption>카테고리 하나의 폴더 구성</figcaption></figure></div><div class="notes"><p><strong>설명</strong> MVTec AD는 독일 MVTec사가 공개한 산업용 이상 탐지 데이터셋으로, 이 분야 논문 대부분이 성능을 비교하는 기준입니다. 논문 기준으로 물체와 텍스처를 합쳐 15개 카테고리가 있습니다. 구성이 실제 현장 상황을 흉내 내도록 되어 있어서, 학습 폴더에는 정상 이미지만 있고 시험 폴더에 정상과 여러 종류의 불량이 섞여 있습니다. 불량 이미지마다 불량 위치를 칠한 마스크가 있어 픽셀 단위 평가도 할 수 있습니다.</p><p><strong>예상 질문</strong> Q: 회사 제품에 바로 써도 되나요? A: 공식 페이지의 라이선스를 확인해야 합니다. 비상업적 용도 조건으로 공개된 것으로 알려져 있으니 교육과 연구용으로 쓰고, 상업적 사용은 조건을 직접 확인하게 하세요.</p><p><strong>주의</strong> 벤치마크에서 점수가 높은 방법이 우리 제품에서도 좋다는 보장은 없습니다. 실제 데이터로 다시 확인해야 합니다.</p></div></section>
+<section class="slide layout-stack" id="s23"><h2>Anomalib 라이브러리</h2><div class="body"><ul><li>이상 탐지 모델(PaDiM, PatchCore 등)을 한곳에 모은 오픈소스 라이브러리</li><li>데이터 준비, 학습, 평가, 이상 맵 시각화를 같은 방식으로 실행한다</li></ul><pre><code>from anomalib.data import MVTec          # 버전에 따라 이름이 다르다
+from anomalib.models import Patchcore
+from anomalib.engine import Engine
+
+engine = Engine()
+engine.fit(model=Patchcore(), datamodule=MVTec(category=&quot;bottle&quot;))</code></pre><div class="callout warn"><p>버전마다 클래스 이름과 인자가 자주 바뀐다. 설치한 버전의 공식 문서를 기준으로 한다.</p></div></div><div class="notes"><p><strong>설명</strong> Anomalib은 Intel이 주도하는 오픈소스 이상 탐지 라이브러리로, 여러 논문의 모델을 같은 사용법으로 실행할 수 있게 묶어 두었습니다. 모델 이름만 바꾸면 PaDiM, PatchCore 등을 같은 데이터로 비교할 수 있습니다. 화면의 코드는 "데이터 모듈, 모델, 엔진" 세 부분으로 구성된다는 구조만 보여 주는 예시입니다.</p><p><strong>예상 질문</strong> Q: 직접 구현하지 않고 라이브러리를 쓰는 이유는 무엇인가요? A: 논문 구현을 처음부터 맞추려면 전처리, 평가 지표, 이상 맵 후처리까지 모두 정확히 맞춰야 합니다. 라이브러리를 쓰면 이 부분이 표준화되어 있어 방법 비교에 집중할 수 있습니다.</p><p><strong>주의</strong> 버전 확인이 꼭 필요합니다. 예를 들어 데이터 모듈 이름(<code>MVTec</code>/<code>MVTecAD</code>), 학습 인자, 결과 저장 위치가 버전마다 다릅니다. 강의 전에 실습 노트북이 설치하는 버전으로 한 번 실행해 보세요.</p></div></section>
+<section class="slide layout-section" id="s24"><h2>평가와 현장 적용</h2><div class="body"></div><div class="notes"><p>이상 탐지 결과를 숫자로 평가하는 방법과, 임계값을 정하고 현장에서 운영할 때 고려할 점을 다룹니다. 모델 성능보다 "판정 기준을 누가, 어떻게 정하는가"가 실무에서 더 어렵다는 점을 강조합니다.</p></div></section>
+<section class="slide layout-stack" id="s25"><h2>혼동 행렬로 보는 미검과 과검</h2><div class="body"><table><thead><tr><th></th><th>판정: 불량</th><th>판정: 정상</th></tr></thead><tbody><tr><td><strong>실제: 불량</strong></td><td>TP (잘 잡음)</td><td><strong>FN (미검)</strong></td></tr><tr><td><strong>실제: 정상</strong></td><td><strong>FP (과검)</strong></td><td>TN (잘 통과)</td></tr></tbody></table><ul><li>불량 검출률(Recall) = TP / (TP + FN) → 미검이 적을수록 높다</li><li>과검률(False Positive Rate) = FP / (FP + TN) → 과검이 적을수록 낮다</li></ul><figure class="diagram"><svg class="dg" role="img" aria-label="임계값을 넘으면 불량으로 판정한다" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 235"><defs><marker id="arr-206" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="arrhead"/></marker><marker id="arr-acc-206" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="arrhead-acc"/></marker></defs>
+<line x1="40" y1="150" x2="1060" y2="150" class="line" marker-end="url(#arr-206)"/>
+<text x="1060" y="185" text-anchor="end" class="t-s t-muted">이상 점수 →</text>
+<line x1="600" y1="20" x2="600" y2="200" class="line-acc" stroke-dasharray="8 6"/>
+<text x="600" y="225" text-anchor="middle" class="t-s t-acc">임계값</text>
+<text x="320" y="40" text-anchor="middle" class="t-head">정상 판정</text>
+<text x="830" y="40" text-anchor="middle" class="t-head">불량 판정</text>
+<circle cx="80" cy="115" r="14" class="box-soft"/>
+<circle cx="140" cy="115" r="14" class="box-soft"/>
+<circle cx="190" cy="115" r="14" class="box-soft"/>
+<circle cx="250" cy="115" r="14" class="box-soft"/>
+<circle cx="300" cy="115" r="14" class="box-soft"/>
+<circle cx="360" cy="115" r="14" class="box-soft"/>
+<circle cx="420" cy="115" r="14" class="box-soft"/>
+<circle cx="470" cy="115" r="14" class="box-soft"/>
+<circle cx="690" cy="115" r="14" class="box-warn"/>
+<circle cx="760" cy="115" r="14" class="box-warn"/>
+<circle cx="840" cy="115" r="14" class="box-warn"/>
+<circle cx="930" cy="115" r="14" class="box-warn"/>
+<circle cx="1010" cy="115" r="14" class="box-warn"/>
+<circle cx="530" cy="115" r="14" class="box-warn"/>
+<text x="530" y="80" text-anchor="middle" class="t-s t-head">미검 (FN)</text>
+<circle cx="650" cy="115" r="14" class="box-soft"/>
+<text x="670" y="80" text-anchor="middle" class="t-s t-head">과검 (FP)</text>
+<circle cx="110" cy="210" r="10" class="box-soft"/>
+<text x="130" y="216" text-anchor="start" class="t-s">실제 정상</text>
+<circle cx="290" cy="210" r="10" class="box-warn"/>
+<text x="310" y="216" text-anchor="start" class="t-s">실제 불량</text>
+</svg><figcaption>임계값을 넘으면 불량으로 판정한다</figcaption></figure></div><div class="notes"><p><strong>설명</strong> 혼동 행렬(Confusion Matrix)은 실제 상태와 판정 결과를 2x2 표로 정리한 것입니다. 불량을 찾아야 할 대상(Positive)으로 두면, 오른쪽 위가 미검이고 왼쪽 아래가 과검입니다. 불량 검출률(Recall)은 실제 불량 중 몇 개를 잡았는지, 과검률은 실제 정상 중 몇 개를 잘못 걸렀는지를 나타냅니다. 세그멘테이션의 Precision, Recall과 같은 정의를 이미지 단위에 적용한 것입니다.</p><p><strong>예상 질문</strong> Q: 정확도(Accuracy) 하나만 보면 안 되나요? A: 불량이 드물면 위험합니다. 불량이 1%인 라인에서 모두 정상이라고 답해도 정확도는 99%입니다. 그래서 미검과 과검을 따로 봐야 합니다.</p><p><strong>주의</strong> 혼동 행렬의 숫자는 임계값을 하나 정해야 나옵니다. 임계값을 바꾸면 표 전체가 바뀝니다.</p></div></section>
+<section class="slide layout-stack" id="s26"><h2>이미지 단위 AUROC</h2><div class="body"><ul><li>임계값을 처음부터 끝까지 바꾸며 (과검률, 검출률)을 찍은 곡선 = ROC 곡선</li><li>AUROC = ROC 곡선 아래 넓이, <strong>임계값을 정하지 않고</strong> 모델을 비교한다</li><li>1에 가까울수록 정상과 불량의 점수가 잘 갈린다, 0.5는 무작위 수준</li></ul><figure class="diagram"><svg class="dg" role="img" aria-label="곡선이 왼쪽 위에 붙을수록 좋다" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 275"><defs><marker id="arr-207" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="arrhead"/></marker><marker id="arr-acc-207" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="arrhead-acc"/></marker></defs>
+<path d="M380 240 C390 70 440 30 600 20 L600 240 Z" class="box-soft"/>
+<line x1="380" y1="240" x2="620" y2="240" class="line" marker-end="url(#arr-207)"/>
+<line x1="380" y1="240" x2="380" y2="0" class="line" marker-end="url(#arr-207)"/>
+<line x1="380" y1="240" x2="600" y2="20" class="line" stroke-dasharray="6 5"/>
+<path d="M380 240 C390 70 440 30 600 20" class="line-acc" fill="none" stroke-width="4"/>
+<text x="490.0" y="268" text-anchor="middle" class="t-s">과검률 (FPR)</text>
+<text x="364" y="130.0" text-anchor="end" class="t-s">검출률</text>
+<text x="515" y="190" text-anchor="middle" class="t-s t-head">넓이 = AUROC</text>
+<text x="710" y="70" text-anchor="start" class="t-s t-acc">왼쪽 위: 과검 적고 검출 많음</text>
+<text x="710" y="170" text-anchor="start" class="t-s t-muted">대각선: 무작위 (0.5)</text>
+</svg><figcaption>곡선이 왼쪽 위에 붙을수록 좋다</figcaption></figure></div><div class="notes"><p><strong>설명</strong> AUROC(Area Under the ROC Curve)는 임계값을 아주 낮게부터 아주 높게까지 바꿔 가며 검출률과 과검률을 모두 계산하고, 그 곡선 아래 넓이를 잰 값입니다. 의미로 풀면 "불량 하나와 정상 하나를 무작위로 골랐을 때, 불량 쪽 이상 점수가 더 높을 확률"에 해당합니다. 그래서 임계값을 아직 정하지 않은 상태에서 모델끼리 비교할 때 씁니다. 대부분의 이상 탐지 논문이 이미지 단위 AUROC를 대표 지표로 보고합니다.</p><p><strong>예상 질문</strong> Q: AUROC가 높으면 현장에 바로 쓸 수 있나요? A: 아닙니다. AUROC는 점수의 순서가 잘 매겨지는지를 볼 뿐이고, 실제 운영에는 임계값 하나를 정해야 합니다. 그 임계값에서의 미검과 과검을 따로 확인해야 합니다.</p><p><strong>주의</strong> 시험 세트의 불량이 아주 적으면 AUROC 값이 몇 장의 결과로 크게 흔들립니다. 숫자만 보지 말고 틀린 이미지를 직접 열어 보게 하세요.</p></div></section>
+<section class="slide layout-stack" id="s27"><h2>픽셀 단위 평가</h2><div class="body"><div class="compare cols-2"><div class="panel"><div class="panel-t">이미지 단위</div><ul><li>이 이미지가 불량인가?</li><li>이상 점수와 정상/불량 라벨로 평가</li></ul></div><div class="panel"><div class="panel-t">픽셀 단위</div><ul><li>불량 위치를 맞혔는가?</li><li>이상 맵과 정답 마스크로 평가</li></ul></div></div><ul><li>픽셀 AUROC: 모든 픽셀을 정상/불량으로 놓고 AUROC를 계산</li><li>PRO (Per-Region Overlap): 불량 영역마다 얼마나 덮었는지 평균, 작은 불량도 같은 무게</li></ul><figure class="diagram"><svg class="dg" role="img" aria-label="이상 맵을 정답 마스크와 비교한다" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 235"><defs><marker id="arr-208" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="arrhead"/></marker><marker id="arr-acc-208" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="arrhead-acc"/></marker></defs>
+<rect x="40" y="30" width="220" height="150" rx="10" class="box-gray"/>
+<line x1="176.4" y1="75.0" x2="216.0" y2="112.5" class="line-warn" stroke-width="5"/>
+<circle cx="190" cy="92" r="50" class="box-warn op"/>
+<circle cx="190" cy="92" r="25" class="box-acc op"/>
+<text x="150" y="220" text-anchor="middle" class="t-head">이상 맵</text>
+<text x="330" y="115" text-anchor="middle" class="t-l">vs</text>
+<rect x="400" y="30" width="220" height="150" rx="8" class="box-dark"/>
+<ellipse cx="550" cy="92" rx="26" ry="10" transform="rotate(50 550 92)" class="box-soft"/>
+<text x="510" y="220" text-anchor="middle" class="t-head">정답 마스크</text>
+<line x1="640" y1="105" x2="720" y2="105" class="line" marker-end="url(#arr-208)"/>
+<rect x="740" y="30" width="320" height="150" rx="8" class="box"/>
+<text x="900" y="85" text-anchor="middle" class="t-head">겹친 정도</text>
+<text x="900" y="125" text-anchor="middle" class="t-s t-acc">픽셀 AUROC, PRO</text>
+</svg><figcaption>이상 맵을 정답 마스크와 비교한다</figcaption></figure></div><div class="notes"><p><strong>설명</strong> 이미지 단위 평가는 "불량품을 골라냈는가"를, 픽셀 단위 평가는 "불량 위치를 정확히 짚었는가"를 봅니다. 픽셀 AUROC는 이미지 단위와 같은 계산을 픽셀마다 한 것입니다. 그런데 불량 픽셀은 전체의 아주 작은 부분이고, 큰 불량 하나가 픽셀 수를 대부분 차지할 수 있습니다. 그래서 불량 영역 하나하나를 얼마나 덮었는지 평균하는 PRO 같은 지표도 함께 씁니다. 세그멘테이션의 IoU, Dice와 같은 발상으로 겹침을 본다고 연결해 주세요.</p><p><strong>예상 질문</strong> Q: 현장에서는 어느 쪽이 더 중요한가요? A: 합격/불합격 판정이 목적이면 이미지 단위가 우선입니다. 불량 위치를 작업자에게 보여 주거나 크기를 재야 하면 픽셀 단위도 중요합니다.</p><p><strong>주의</strong> PRO의 정확한 계산 방식(과검률 구간 제한 등)은 논문과 라이브러리마다 세부가 다를 수 있습니다. 수치를 비교할 때는 같은 구현으로 계산했는지 확인해야 합니다.</p></div></section>
+<section class="slide layout-stack" id="s28"><h2>임계값 선택: 미검과 과검의 균형</h2><div class="body"><ul><li>이상 점수가 임계값 이상이면 불량, 미만이면 정상</li><li>임계값을 낮추면 미검이 줄고 과검이 늘어난다 (높이면 반대)</li><li>정하는 기준의 예: 검증 세트에서 <strong>미검 0</strong>이 되는 가장 높은 값, 또는 F1이 최대가 되는 값</li></ul><figure class="diagram"><svg class="dg" role="img" aria-label="정상과 불량의 점수 분포가 겹치는 구간에서 선택해야 한다" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 245"><defs><marker id="arr-209" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="arrhead"/></marker><marker id="arr-acc-209" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="arrhead-acc"/></marker></defs>
+<line x1="40" y1="200" x2="1060" y2="200" class="line" marker-end="url(#arr-209)"/>
+<text x="1060" y="232" text-anchor="end" class="t-s t-muted">이상 점수 →</text>
+<path d="M60 200 C200 200 230 40 360 40 C490 40 520 200 700 200 Z" class="box-soft op"/>
+<path d="M460 200 C600 200 640 70 760 70 C880 70 910 200 1040 200 Z" class="box-warn op"/>
+<text x="360" y="95" text-anchor="middle" class="t-head">정상</text>
+<text x="780" y="120" text-anchor="middle" class="t-head">불량</text>
+<line x1="590" y1="15" x2="590" y2="210" class="line-acc" stroke-dasharray="8 6"/>
+<text x="590" y="236" text-anchor="middle" class="t-s t-acc">임계값</text>
+<text x="530" y="185" text-anchor="end" class="t-s">미검</text>
+<text x="640" y="185" text-anchor="start" class="t-s">과검</text>
+<line x1="570" y1="30" x2="470" y2="30" class="line-acc" marker-end="url(#arr-acc-209)"/>
+<text x="460" y="36" text-anchor="end" class="t-s">낮추면: 미검 ↓ 과검 ↑</text>
+<line x1="610" y1="30" x2="710" y2="30" class="line-acc" marker-end="url(#arr-acc-209)"/>
+<text x="720" y="36" text-anchor="start" class="t-s">높이면: 미검 ↑ 과검 ↓</text>
+</svg><figcaption>정상과 불량의 점수 분포가 겹치는 구간에서 선택해야 한다</figcaption></figure></div><div class="notes"><p><strong>설명</strong> 이상 점수는 숫자일 뿐이고, 어디부터 불량으로 볼지는 임계값(Threshold)이 정합니다. 정상과 불량의 점수 분포가 완전히 떨어져 있으면 그 사이 어디든 괜찮지만, 보통은 겹치는 구간이 있습니다. 그 구간에서 선을 왼쪽으로 옮기면 불량을 더 잡지만 정상도 더 걸리고, 오른쪽으로 옮기면 그 반대입니다. 미검을 무겁게 보는 현장이라면 검증 데이터에서 불량을 하나도 놓치지 않는 선을 먼저 찾고, 그때의 과검률을 감당할 수 있는지 확인합니다.</p><p><strong>예상 질문</strong> Q: 정상만으로 학습했는데 임계값은 무엇으로 정하나요? A: 임계값을 정하려면 불량이 조금이라도 있는 검증 세트가 필요합니다. 불량이 전혀 없다면 정상 점수 분포의 상위 값(예: 정상의 거의 전부가 통과하는 값)을 임시 기준으로 쓰고, 운영하며 모은 불량으로 다시 조정합니다.</p><p><strong>주의</strong> 임계값을 정한 데이터로 성능을 다시 재면 결과가 실제보다 좋게 나옵니다. 임계값을 정하는 데이터와 최종 성능을 확인하는 데이터를 나눠야 합니다.</p></div></section>
+<section class="slide layout-stack" id="s29"><h2>현장 운영: 저장, 재검, 재학습</h2><div class="body"><div class="cards cols-3"><div class="card"><div class="card-t">판정 결과 저장</div><div class="card-d">원본, 이상 점수, 이상 맵, 판정, 모델 버전을 함께 남긴다</div></div><div class="card"><div class="card-t">사람 재검</div><div class="card-d">불량이나 경계 구간 판정은 작업자가 확인하고 결과를 기록한다</div></div><div class="card"><div class="card-t">재학습</div><div class="card-d">새로운 정상 변동(자재, 조명, 설비 변경)이 생기면 정상 데이터를 보강해 다시 학습한다</div></div></div><figure class="diagram"><svg class="dg" role="img" aria-label="판정, 재검, 저장, 재학습이 하나의 순환을 이룬다" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 230"><defs><marker id="arr-210" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="arrhead"/></marker><marker id="arr-acc-210" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="arrhead-acc"/></marker></defs>
+<rect x="20" y="70" width="180" height="60" rx="10" class="box"/>
+<text x="110.0" y="108" text-anchor="middle">촬영</text>
+<rect x="225" y="70" width="180" height="60" rx="10" class="box-head"/>
+<text x="315.0" y="108" text-anchor="middle" class="t-on">모델 판정</text>
+<rect x="430" y="70" width="180" height="60" rx="10" class="box-warn"/>
+<text x="520.0" y="108" text-anchor="middle">사람 재검</text>
+<rect x="635" y="70" width="180" height="60" rx="10" class="box"/>
+<text x="725.0" y="108" text-anchor="middle">결과 저장</text>
+<rect x="840" y="70" width="240" height="60" rx="10" class="box-acc"/>
+<text x="960.0" y="108" text-anchor="middle" class="t-on">정상 보강·재학습</text>
+<line x1="202" y1="100" x2="221" y2="100" class="line" marker-end="url(#arr-210)"/>
+<line x1="407" y1="100" x2="426" y2="100" class="line" marker-end="url(#arr-210)"/>
+<line x1="612" y1="100" x2="631" y2="100" class="line" marker-end="url(#arr-210)"/>
+<line x1="817" y1="100" x2="836" y2="100" class="line" marker-end="url(#arr-210)"/>
+<text x="518" y="60" text-anchor="middle" class="t-s t-muted">불량·경계 구간</text>
+<line x1="315" y1="70" x2="315" y2="20" class="line" marker-end="url(#arr-210)"/>
+<text x="330" y="30" text-anchor="start" class="t-s t-muted">정상 → 통과</text>
+<path d="M960 130 L960 190 L315 190 L315 136" class="line-acc" fill="none" marker-end="url(#arr-acc-210)"/>
+<text x="640" y="220" text-anchor="middle" class="t-s t-acc">새 모델 버전으로 교체</text>
+</svg><figcaption>판정, 재검, 저장, 재학습이 하나의 순환을 이룬다</figcaption></figure></div><div class="notes"><p><strong>설명</strong> 이상 탐지 모델은 한 번 만들고 끝나는 것이 아니라 계속 관리해야 합니다. 판정 결과를 원본 이미지, 점수, 모델 버전과 함께 저장해 두면 문제가 생겼을 때 원인을 추적할 수 있습니다. 불량 판정이나 애매한 점수의 제품은 사람이 다시 보고, 그 결과가 정상으로 판정되면 그 이미지는 정상 데이터에 추가할 후보가 됩니다. 자재나 조명이 바뀌어 정상의 모습이 달라지면 과검이 늘어나므로, 새로운 정상을 모아 다시 학습합니다.</p><p><strong>예상 질문</strong> Q: 재학습은 얼마나 자주 해야 하나요? A: 정해진 주기는 없습니다. 과검률이 갑자기 오르거나 공정 변경이 있을 때가 신호입니다. 과검률을 꾸준히 기록해 두면 재학습 시점을 판단할 수 있습니다.</p><p><strong>주의</strong> 사람이 재검한 결과를 그대로 학습 데이터에 넣기 전에 한 번 더 검토해야 합니다. 불량이 정상 데이터에 섞여 들어가면 모델이 그 불량을 정상으로 배웁니다.</p></div></section>
+<section class="slide layout-stack" id="s30"><h2>실습: 딥러닝 이상 탐지 (Colab)</h2><div class="body"><p><a href="#colab-pending-cv8_02_anomaly_deep" class="colab pending" title="실습 노트북 준비 중 (Drive 업로드 전)">Colab 열기 (준비 중)</a></p><div class="cards cols-4"><div class="card"><div class="card-t">데이터 구성</div><div class="card-d">학습은 정상만, 시험은 정상과 불량</div></div><div class="card"><div class="card-t">특징 기반 모델</div><div class="card-d">사전학습 Backbone 특징으로 정상 기억</div></div><div class="card"><div class="card-t">결과 읽기</div><div class="card-d">이상 점수와 이상 맵</div></div><div class="card"><div class="card-t">평가와 임계값</div><div class="card-d">AUROC, 미검과 과검</div></div></div><div class="steps"><div class="step"><div class="step-n">1</div><div class="step-t">준비</div><div class="step-d">설치, 데이터</div></div><div class="step"><div class="step-n">2</div><div class="step-t">구성 확인</div><div class="step-d">정상/불량</div></div><div class="step"><div class="step-n">3</div><div class="step-t">학습</div><div class="step-d">정상 특징 저장</div></div><div class="step"><div class="step-n">4</div><div class="step-t">평가</div><div class="step-d">점수, 맵, 임계값</div></div></div></div><div class="notes"><p><strong>설명</strong> 정상 이미지만으로 이상 탐지 모델을 만들고, 이상 점수와 이상 맵으로 불량 위치를 확인하는 실습입니다. 수강생이 관찰할 것은 학습 폴더에 정상만 있다는 점, 이상 맵이 실제 불량 마스크와 얼마나 겹치는지, 임계값을 바꾸면 미검과 과검의 개수가 어떻게 바뀌는지입니다. 이상 맵이 틀린 이미지(놓친 불량, 잘못 걸린 정상)를 직접 열어 보며 원인을 이야기하게 하면 좋습니다.</p><p><strong>실행 팁</strong> 이 실습은 GPU 런타임(T4)이 필요합니다. Colab 메뉴의 런타임 유형 변경에서 GPU를 고른 뒤 시작하세요. 라이브러리를 설치한 뒤 런타임을 다시 시작하라는 안내가 나오면 재시작 후 아래 셀부터 이어서 실행합니다. 데이터셋을 내려받는 데 시간이 걸릴 수 있고, 저장 경로가 맞지 않으면 데이터를 찾지 못하므로 경로를 먼저 확인합니다.</p><p><strong>주의</strong> 라이브러리 버전이 바뀌면 실행이 안 되는 셀이 생길 수 있습니다. 강의 전에 한 번 끝까지 실행해 보세요.</p></div></section>
+<section class="slide layout-section" id="s31"><h2>핵심 정리</h2><div class="body"></div><div class="notes"><p>불량 검사를 위한 핵심 개념을 한 장으로 정리합니다.</p></div></section>
+<section class="slide layout-stack" id="s32"><h2>핵심 개념 정리</h2><div class="body"><div class="cards cols-3"><div class="card"><div class="card-t">문제 정의</div><div class="card-d">불량 데이터가 적고 바뀌면 정상만으로 학습하는 이상 탐지</div></div><div class="card"><div class="card-t">촬영 조건</div><div class="card-d">조명, 위치, 카메라 고정이 모든 방법의 바탕</div></div><div class="card"><div class="card-t">규칙 기반</div><div class="card-d">정렬 → 차영상 → 이진화 → 모폴로지 → 면적 판정</div></div><div class="card"><div class="card-t">딥러닝 이상 탐지</div><div class="card-d">재구성, 특징 임베딩(PaDiM, PatchCore), 지식 증류</div></div><div class="card"><div class="card-t">출력</div><div class="card-d">이상 점수(이미지)와 이상 맵(픽셀)</div></div><div class="card"><div class="card-t">평가와 운영</div><div class="card-d">AUROC, 임계값과 미검·과검, 저장·재검·재학습</div></div></div><figure class="diagram"><svg class="dg" role="img" aria-label="모든 방법은 정상과 비교해 벗어난 정도를 잰다" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 84"><defs><marker id="arr-211" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="arrhead"/></marker><marker id="arr-acc-211" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="arrhead-acc"/></marker></defs>
+<rect x="10" y="10" width="300" height="64" rx="10" class="box"/>
+<text x="160" y="50" text-anchor="middle">정상과 비교</text>
+<line x1="314" y1="42" x2="366" y2="42" class="line" marker-end="url(#arr-211)"/>
+<rect x="370" y="10" width="440" height="64" rx="10" class="box-acc"/>
+<text x="590" y="50" text-anchor="middle" class="t-on">벗어난 정도 = 이상 점수, 이상 맵</text>
+<line x1="814" y1="42" x2="866" y2="42" class="line" marker-end="url(#arr-211)"/>
+<rect x="870" y="10" width="220" height="64" rx="10" class="box-head"/>
+<text x="980" y="50" text-anchor="middle" class="t-on">임계값 → 판정</text>
+</svg><figcaption>모든 방법은 정상과 비교해 벗어난 정도를 잰다</figcaption></figure></div><div class="notes"><p><strong>설명</strong> 키워드를 하나씩 짚으며 질문을 받으세요. 가장 중요한 메시지는 두 가지입니다. 첫째, 규칙 기반이든 딥러닝이든 "정상과 비교해 얼마나 벗어났는가"를 잰다는 점에서 같습니다. 둘째, 모델 점수보다 촬영 조건과 임계값, 운영 흐름이 실제 검사 품질을 좌우합니다.</p><p><strong>예상 질문</strong> Q: 현장에 처음 적용한다면 무엇부터 하나요? A: 촬영 조건을 고정하고 정상 이미지를 모으는 것이 출발점입니다. 제품이 균일하면 규칙 기반으로 충분한지 확인하고, 정상 편차가 크면 이상 탐지 모델을 같은 데이터로 비교해 보는 방식이 무난합니다.</p></div></section>
+    <img id="stage-logo" src="data:image/png;base64,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" alt="logo">
+  </div>
+  <button id="edge-prev" class="edge" title="이전 (←)" aria-label="이전 슬라이드">‹</button>
+  <button id="edge-next" class="edge" title="다음 (→)" aria-label="다음 슬라이드">›</button>
+</div>
+<div id="notes-panel"></div>
+<div id="bar">
+  <a class="btn" id="btn-home" href="index.html" data-nav="index.html" title="강의 목록" aria-label="강의 목록">⌂</a>
+  <button id="btn-toc" title="목차 (T)" aria-label="목차">☰</button>
+  <button id="btn-prev" title="이전 (←)" aria-label="이전">‹</button>
+  <button id="btn-next" title="다음 (→)" aria-label="다음">›</button>
+  <span id="pager"><input id="page-input" type="number" min="1" max="32" aria-label="현재 페이지 (G)"> / <span id="page-total"></span></span>
+  <div id="seek" title="클릭하거나 드래그해서 이동"><div id="seek-fill"></div><div id="seek-thumb"></div><div id="seek-tip"></div></div>
+  <span id="days"><a href="slide_1.html" data-nav="slide_1.html" title="모듈 1: 컴퓨터 비전과 OpenCV">모듈 1</a><a href="slide_2.html" data-nav="slide_2.html" title="모듈 2: PyTorch와 CNN 분류·회귀">모듈 2</a><a href="slide_3.html" data-nav="slide_3.html" title="모듈 3: 세그멘테이션">모듈 3</a><a href="slide_4.html" data-nav="slide_4.html" title="모듈 4: Object Detection과 YOLO">모듈 4</a><a href="slide_5.html" data-nav="slide_5.html" title="모듈 5: 영상(Video) 분석 기초">모듈 5</a><a href="slide_6.html" data-nav="slide_6.html" title="모듈 6: 객체 추적과 영상 분석 응용">모듈 6</a><a href="slide_7.html" data-nav="slide_7.html" title="모듈 7: 특징점, 카메라와 측정">모듈 7</a><a href="slide_8.html" data-nav="slide_8.html" title="모듈 8: 이상 탐지 기반 불량 검사" class="cur" aria-current="page">모듈 8</a></span>
+  <span id="bar-title"></span>
+  <button id="btn-notes" title="발표자 노트 (N)" aria-label="발표자 노트">노트</button>
+  <button id="btn-full" title="전체화면 (F)" aria-label="전체화면">⛶</button>
+  <button id="btn-help" title="단축키 (?)" aria-label="단축키">?</button>
+</div>
+<div id="help-box"><div class="card">
+  <h3>단축키</h3>
+  <div><kbd>→</kbd> <kbd>↓</kbd> <kbd>Space</kbd> <kbd>PgDn</kbd> 다음 &nbsp; <kbd>←</kbd> <kbd>↑</kbd> <kbd>PgUp</kbd> 이전</div>
+  <div><kbd>Home</kbd> / <kbd>End</kbd> 처음 / 마지막 &nbsp; <kbd>G</kbd> 페이지 번호 입력</div>
+  <div><kbd>T</kbd> 목차 &nbsp; <kbd>/</kbd> 목차 검색 &nbsp; <kbd>N</kbd> 발표자 노트 &nbsp; <kbd>F</kbd> 전체화면</div>
+  <div>마우스 휠 아래 = 다음, 위 = 이전 (슬라이드 위에서)</div>
+  <div>좌우 가장자리 ‹ › 버튼 = 이전 / 다음 · 아래 진행 바 클릭/드래그 = 이동</div>
+  <div style="opacity:.6;margin-top:6px">아무 곳이나 클릭하면 닫힙니다</div>
+</div></div>
+<script>
+(function () {
+  var $ = function (id) { return document.getElementById(id); };
+  var body = document.body;
+  var viewport = $('viewport'), stage = $('stage');
+  var slides = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+  var N = slides.length;
+  var titles = slides.map(function (el) { return el.querySelector('h2').textContent; });
+  var cur = 0;
+  var POS_KEY = 'slide:pos:' + location.pathname;
+
+  function store(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+  function load(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+
+  /* ---------- 화면 맞춤 ---------- */
+  function fit() {
+    var w = viewport.clientWidth, h = viewport.clientHeight;
+    var s = Math.min(w / 1280, h / 720);
+    stage.style.transform = 'translate(-50%, -50%) scale(' + s + ')';
+  }
+
+  /* ---------- 목차 ---------- */
+  var tocLinks = Array.prototype.slice.call(document.querySelectorAll('#toc [data-i]'));
+  var groups = Array.prototype.slice.call(document.querySelectorAll('.toc-group'));
+
+  function syncToc() {
+    var curLink = null;
+    tocLinks.forEach(function (a) {
+      var on = +a.getAttribute('data-i') === cur;
+      a.classList.toggle('cur', on);
+      if (on) curLink = a;
+    });
+    if (curLink) {
+      var g = curLink.closest('.toc-group');
+      if (g) g.classList.add('open');
+      var list = $('toc-list'), r = curLink.getBoundingClientRect(), lr = list.getBoundingClientRect();
+      if (r.top < lr.top + 30 || r.bottom > lr.bottom - 10) list.scrollTop += r.top - lr.top - lr.height / 3;
+    }
+  }
+
+  /* ---------- 이동 ---------- */
+  var notesPanel = $('notes-panel');
+  function show(i, noScroll) {
+    cur = Math.max(0, Math.min(N - 1, i));
+    slides.forEach(function (el, k) { el.classList.toggle('active', k === cur); });
+    var pct = N > 1 ? cur / (N - 1) * 100 : 100;
+    $('seek-fill').style.width = pct + '%';
+    $('seek-thumb').style.left = pct + '%';
+    var pi = $('page-input');
+    if (document.activeElement !== pi) pi.value = cur + 1;
+    $('btn-prev').disabled = $('edge-prev').disabled = cur === 0;
+    $('btn-next').disabled = $('edge-next').disabled = cur === N - 1;
+    $('bar-title').textContent = titles[cur];
+    var n = slides[cur].querySelector('.notes');
+    notesPanel.innerHTML = n ? n.innerHTML : '<em>(이 슬라이드에는 노트가 없습니다)</em>';
+    document.title = (cur + 1) + '/' + N + ' ' + titles[cur];
+    try { history.replaceState(null, '', '#' + (cur + 1)); } catch (e) {}
+    store(POS_KEY, cur + 1);
+    syncToc();
+  }
+  var next = function () { show(cur + 1); }, prev = function () { show(cur - 1); };
+
+  /* ---------- 하단 바 ---------- */
+  $('page-total').textContent = N;
+  $('btn-prev').onclick = prev;
+  $('btn-next').onclick = next;
+  $('edge-prev').onclick = function (e) { e.stopPropagation(); prev(); };
+  $('edge-next').onclick = function (e) { e.stopPropagation(); next(); };
+  $('btn-toc').onclick = toggleToc;
+  $('btn-notes').onclick = toggleNotes;
+  $('btn-full').onclick = toggleFull;
+  $('btn-help').onclick = function () { $('help-box').classList.toggle('on'); };
+  $('help-box').onclick = function () { this.classList.remove('on'); };
+
+  var pageInput = $('page-input');
+  pageInput.addEventListener('keydown', function (e) {
+    e.stopPropagation();
+    if (e.key === 'Enter') { show(parseInt(pageInput.value, 10) - 1); pageInput.blur(); }
+    if (e.key === 'Escape') { pageInput.value = cur + 1; pageInput.blur(); }
+  });
+  pageInput.addEventListener('focus', function () { pageInput.select(); });
+  pageInput.addEventListener('blur', function () { pageInput.value = cur + 1; });
+
+  /* 진행 바: 클릭/드래그로 이동, 마우스를 올리면 제목 표시, 장 경계 눈금 */
+  var seek = $('seek'), tip = $('seek-tip');
+  document.querySelectorAll('#toc .toc-ch[data-i]').forEach(function (a) {
+    var t = document.createElement('div');
+    t.className = 'tick';
+    t.style.left = (N > 1 ? (+a.getAttribute('data-i')) / (N - 1) * 100 : 0) + '%';
+    seek.appendChild(t);
+  });
+  function seekIndex(e) {
+    var r = seek.getBoundingClientRect();
+    return Math.round(Math.max(0, Math.min(1, (e.clientX - r.left) / r.width)) * (N - 1));
+  }
+  var dragging = false;
+  seek.addEventListener('pointerdown', function (e) { dragging = true; seek.setPointerCapture(e.pointerId); show(seekIndex(e)); });
+  seek.addEventListener('pointermove', function (e) {
+    var i = seekIndex(e), r = seek.getBoundingClientRect();
+    tip.style.display = 'block';
+    tip.style.left = Math.max(60, Math.min(r.width - 60, e.clientX - r.left)) + 'px';
+    tip.textContent = (i + 1) + '. ' + titles[i];
+    if (dragging) show(i);
+  });
+  seek.addEventListener('pointerup', function () { dragging = false; });
+  seek.addEventListener('pointerleave', function () { tip.style.display = 'none'; });
+
+  /* ---------- 목차 조작 ---------- */
+  tocLinks.forEach(function (a) {
+    a.addEventListener('click', function (e) {
+      e.preventDefault();
+      show(+a.getAttribute('data-i'));
+      a.blur();  // 클릭 뒤 방향키가 목차 스크롤이 아니라 슬라이드 이동으로 가도록 포커스를 뗀다
+      if (window.innerWidth <= 900) body.classList.add('toc-closed');
+    });
+  });
+  groups.forEach(function (g) {
+    var caret = g.querySelector('.toc-caret');
+    caret.addEventListener('click', function (e) { e.stopPropagation(); g.classList.toggle('open'); });
+  });
+  $('toc-search').addEventListener('input', function () {
+    var q = this.value.trim().toLowerCase();
+    groups.forEach(function (g) {
+      var any = false;
+      g.querySelectorAll('li a').forEach(function (a) {
+        var hit = !q || a.textContent.toLowerCase().indexOf(q) >= 0;
+        a.parentNode.classList.toggle('toc-hide', !hit);
+        if (hit) any = true;
+      });
+      var chHit = !q || g.querySelector('.toc-ch').textContent.toLowerCase().indexOf(q) >= 0;
+      g.classList.toggle('toc-hide', !(any || chHit));
+      if (q && any) g.classList.add('open');
+      if (q && chHit) g.querySelectorAll('li').forEach(function (li) { li.classList.remove('toc-hide'); });
+    });
+  });
+  $('toc-search').addEventListener('keydown', function (e) { e.stopPropagation(); });
+
+  function toggleToc() {
+    body.classList.toggle('toc-closed');
+    store('slide:toc', body.classList.contains('toc-closed') ? '0' : '1');
+    $('btn-toc').classList.toggle('on', !body.classList.contains('toc-closed'));
+    setTimeout(fit, 0);
+  }
+  function toggleNotes() { body.classList.toggle('show-notes'); $('btn-notes').classList.toggle('on', body.classList.contains('show-notes')); }
+  function toggleFull() {
+    if (document.fullscreenElement) document.exitFullscreen();
+    else if (document.documentElement.requestFullscreen) document.documentElement.requestFullscreen();
+  }
+  document.addEventListener('fullscreenchange', function () {
+    body.classList.toggle('fs', !!document.fullscreenElement);
+    body.classList.remove('idle');
+    setTimeout(fit, 0);
+  });
+
+  /* 전체화면에서 마우스가 멈추면 바를 숨긴다 */
+  var idleTimer = null;
+  document.addEventListener('mousemove', function () {
+    body.classList.remove('idle');
+    clearTimeout(idleTimer);
+    if (document.fullscreenElement) idleTimer = setTimeout(function () { body.classList.add('idle'); }, 2500);
+  });
+
+  /* ---------- 키보드 / 클릭 / 터치 ---------- */
+  document.addEventListener('keydown', function (e) {
+    if (e.ctrlKey || e.metaKey || e.altKey) return;
+    var tg = e.target, tag = tg && tg.tagName;
+    if (tag === 'INPUT' || tag === 'TEXTAREA') {  // 검색창 등에 글자를 칠 때는 단축키를 쓰지 않는다
+      if (e.key === 'Escape') tg.blur();
+      return;
+    }
+    // 링크나 버튼에 포커스가 있을 때 Enter/Space 는 그 요소의 동작에 맡긴다
+    if ((e.key === 'Enter' || e.key === ' ') && tg && tg.closest && tg.closest('a, button')) return;
+    switch (e.key) {
+      case 'ArrowRight': case 'ArrowDown': case 'PageDown': case ' ': case 'Enter': next(); e.preventDefault(); break;
+      case 'ArrowLeft': case 'ArrowUp': case 'PageUp': case 'Backspace': prev(); e.preventDefault(); break;
+      case 'Home': show(0); break;
+      case 'End': show(N - 1); break;
+      case 'n': case 'N': toggleNotes(); break;
+      case 't': case 'T': toggleToc(); break;
+      case 'f': case 'F': toggleFull(); break;
+      case 'g': case 'G': pageInput.focus(); e.preventDefault(); break;
+      case '/': $('toc-search').focus(); if (body.classList.contains('toc-closed')) toggleToc(); e.preventDefault(); break;
+      case '?': $('help-box').classList.toggle('on'); break;
+      case 'Escape': $('help-box').classList.remove('on'); break;
+    }
+  });
+
+  // 슬라이드 본문 클릭으로는 넘기지 않는다 (글자 선택·복사와 충돌해 사용자 지시로 제거, 2026-11-12).
+  // 넘기기: 키보드, 마우스 휠, 하단 바 버튼, 좌우 가장자리 ‹ › 버튼, 진행 바, 목차, 터치 스와이프.
+
+  // 마우스 휠: 슬라이드 영역에서 아래로 굴리면 다음, 위로 굴리면 이전.
+  // 한 번 넘긴 뒤 잠시(350ms) 쉬어 한 번 굴릴 때 여러 장이 넘어가지 않게 한다. Ctrl+휠(확대/축소)은 건드리지 않는다.
+  var wheelLock = 0, wheelAcc = 0;
+  viewport.addEventListener('wheel', function (e) {
+    if (e.ctrlKey || e.metaKey) return;
+    e.preventDefault();
+    var now = Date.now();
+    if (now < wheelLock) return;
+    wheelAcc += e.deltaY || e.deltaX;
+    if (Math.abs(wheelAcc) < 30) return;
+    if (wheelAcc > 0) next(); else prev();
+    wheelAcc = 0;
+    wheelLock = now + 350;
+  }, { passive: false });
+
+  var tx = null;
+  viewport.addEventListener('touchstart', function (e) { tx = e.touches[0].clientX; }, { passive: true });
+  viewport.addEventListener('touchend', function (e) {
+    if (tx === null) return;
+    var dx = e.changedTouches[0].clientX - tx;
+    if (Math.abs(dx) > 50) show(cur + (dx < 0 ? 1 : -1));
+    tx = null;
+  });
+
+  window.addEventListener('resize', fit);
+  window.addEventListener('hashchange', function () { var m = /^#(\d+)$/.exec(location.hash); if (m) show(parseInt(m[1], 10) - 1); });
+
+  /* ---------- 초기화 ---------- */
+  var saved = load('slide:toc');
+  if (saved === '0' || (saved === null && window.innerWidth <= 900)) body.classList.add('toc-closed');
+  $('btn-toc').classList.toggle('on', !body.classList.contains('toc-closed'));
+  fit();
+  var m = /^#(\d+)$/.exec(location.hash), start = m ? parseInt(m[1], 10) : parseInt(load(POS_KEY) || '1', 10);
+  show((start || 1) - 1);
+  setTimeout(fit, 50);
+
+  /* ---------- 검사 모드 (build/check.py 가 헤드리스 브라우저로 사용) ----------
+     ?shot=1  : 바와 목차를 숨겨 슬라이드만 보이게 한다 (스크린샷용)
+     ?check=1 : 모든 슬라이드의 넘침과 세로 여백을 계산해 <pre id="check-result"> 에 JSON으로 적는다 */
+  if (/[?&](shot|check)=1/.test(location.search)) { body.classList.add('shot'); fit(); }
+  if (/[?&]check=1/.test(location.search)) {
+    var res = [];
+    [].forEach.call(document.querySelectorAll('.slide'), function (s, k) {
+      var was = s.classList.contains('active');
+      s.classList.add('active');
+      var r = s.getBoundingClientRect(), sc = r.height / 720, over = false, zero = false;
+      [s].concat([].slice.call(s.querySelectorAll('.body,.text,.media,.card,.panel,.callout'))).forEach(function (e) {
+        if (e.scrollHeight > e.clientHeight + 2 || e.scrollWidth > e.clientWidth + 2) over = true;
+      });
+      [].forEach.call(s.querySelectorAll('figure img, figure svg'), function (im) { if (im.getBoundingClientRect().height < 40 * sc) zero = true; });
+      var plain = !(s.classList.contains('layout-section') || s.classList.contains('layout-title'));
+      var media = s.classList.contains('has-media');
+      var kids = [].slice.call(s.querySelectorAll(media ? '.text > *' : '.body > *'));
+      var mb = r.top;
+      kids.forEach(function (e) { mb = Math.max(mb, e.getBoundingClientRect().bottom); });
+      var bullets = s.querySelectorAll('.body > ul > li, .text > ul > li').length;
+      var rich = !!s.querySelector('.cards,.steps,.stats,.callout,.compare,figure,table,pre');
+      res.push({ n: k + 1, title: s.querySelector('h2').textContent, over: over, zero: zero,
+        free: plain ? Math.round((r.bottom - 64 * sc - mb) / r.height * 100) : 0, media: media, bullets: bullets, rich: rich });
+      if (!was) s.classList.remove('active');
+    });
+    var pre = document.createElement('pre');
+    pre.id = 'check-result';
+    pre.textContent = JSON.stringify(res);
+    document.body.appendChild(pre);
+  }
+})();
+
+</script>
+</body>
+</html>
